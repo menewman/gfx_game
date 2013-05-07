@@ -10,7 +10,7 @@
 #include "R3Scene.h"
 #include "particle.h"
 #include "cos426_opengl.h"
-
+#define PI 3.14159265
 
 ////////////////////////////////////////////////////////////
 // GLOBAL CONSTANTS
@@ -52,6 +52,8 @@ static int move_backward = 0;
 static int move_left = 0;
 static int move_right = 0;
 static int move_jump = 0;
+static int turn_left = 0;
+static int turn_right = 0;
 
 
 // GLUT variables 
@@ -793,6 +795,11 @@ void GLUTRedraw(void)
   glClearColor(background[0], background[1], background[2], background[3]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
+  camera.up = R3Vector(0,1,0);
+  R3Point origin = R3Point(0,0,0);
+  R3Plane xzplane = R3Plane(origin, camera.up);
+  camera.towards.Project(xzplane);
+  camera.right.Project(xzplane);
   if (move_forward) {
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
@@ -828,12 +835,25 @@ void GLUTRedraw(void)
       camera.eye += up;
       move_jump = 0;
   }
+  if (turn_right) {
+      R3Vector axis = R3Vector(0, 1, 0);
+      camera.towards.Rotate(axis, -PI/64.0);
+      camera.right.Rotate(axis, -PI/64.0);
+      turn_right = 0; // rotate?
+  }
+  if (turn_left) {
+      R3Vector axis = R3Vector(0, 1, 0);
+      camera.towards.Rotate(axis, PI/64.0);
+      camera.right.Rotate(axis, PI/64.0);
+      turn_left = 0; // rotate?
+  }
   
   double eye_level = 10; // magic number for now
   if (camera.eye.Y() > eye_level) {
       R3Vector gravity = R3Vector(0, -0.2, 0);
       camera.eye += gravity;
   }
+  camera.up = R3Vector(0, 1, 0);
 
   // Load camera
   LoadCamera(&camera);
@@ -956,8 +976,11 @@ void GLUTMotion(int x, int y)
     }
     else if (GLUTbutton[0]) {
       // Rotate world
+      // actually don't
+      if (1 == 0) {
       double vx = (double) dx / (double) GLUTwindow_width;
       double vy = (double) dy / (double) GLUTwindow_height;
+      //double vy = 0;
       double theta = 4.0 * (fabs(vx) + fabs(vy));
       R3Vector vector = (camera.right * vx) + (camera.up * vy);
       R3Vector rotation_axis = camera.towards % vector;
@@ -971,6 +994,7 @@ void GLUTMotion(int x, int y)
       camera.up.Normalize();
       camera.right.Normalize();
       glutPostRedisplay();
+      }
     }
   }
 
@@ -1058,11 +1082,12 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     show_camera = !show_camera;
     break;
 
+/*
   case 'E':
   case 'e':
     show_edges = !show_edges;
     break;
-
+*/
   case 'F':
   case 'f':
     show_faces = !show_faces;
@@ -1112,13 +1137,23 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   case ' ':
       move_jump = 1;
       break;
-
+      
+  case 'Q':
+  case 'q':
+      turn_left = 1;
+      break;
+      
+  case 'E':
+  case 'e':
+      turn_right = 1;
+      break;
+/*
   case 'Q':
   case 'q':
   case 27: // ESCAPE
     quit = 1;
     break;
-
+*/
 /*
   case ' ': {
     printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
