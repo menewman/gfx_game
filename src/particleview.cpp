@@ -542,43 +542,20 @@ void DrawScene(R3Scene *scene)
 }
 
 
-void DrawParticles(R3Scene *scene)
+void DrawParticles(R3Scene *scene, double current_time, double delta_time)
 {
-  // Get current time (in seconds) since start of execution
-  double current_time = GetTime();
-  static double previous_time = 0;
-
-
-  static double time_lost_taking_videos = 0; // for switching back and forth
-					     // between recording and not
-					     // recording smoothly
-
-  // program just started up?
-  if (previous_time == 0) previous_time = current_time;
-
-  // time passed since starting
-  double delta_time = current_time - previous_time;
-
-
-  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
-    delta_time = VIDEO_FRAME_DELAY;    
-    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
-    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
-  } else { // real time simulation
-    delta_time = current_time - previous_time;
-  }
+  
 
   // Update particles
-  UpdateParticles(scene, current_time - time_lost_taking_videos, delta_time, integration_type, 1);
+  UpdateParticles(scene, current_time, delta_time, integration_type, 1);
 
   // Generate new particles
-  GenerateParticles(scene, current_time - time_lost_taking_videos, delta_time);
+  GenerateParticles(scene, current_time , delta_time);
 
   // Render particles
-  if (show_particles) RenderParticles(scene, current_time - time_lost_taking_videos, delta_time);
+  if (show_particles) RenderParticles(scene, current_time, delta_time);
 
-  // Remember previous time
-  previous_time = current_time;
+  
 }
 
 
@@ -793,33 +770,55 @@ void GLUTRedraw(void)
   glClearColor(background[0], background[1], background[2], background[3]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
+  
+  /////////  Do time stuff, moved here from DrawParticles to use current time and delta_time in game logic
+  // Get current time (in seconds) since start of execution
+  double current_time = GetTime();
+  static double previous_time = 0;
+
+
+  static double time_lost_taking_videos = 0; // for switching back and forth
+					     // between recording and not
+					     // recording smoothly
+
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
+
+  // time passed since starting
+  double delta_time = current_time - previous_time;
+
+
+  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
+    delta_time = VIDEO_FRAME_DELAY;    
+    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
+    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
+  } else { // real time simulation
+    delta_time = current_time - previous_time;
+  }
+  double move_const = 10;
   if (move_forward) {
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
       forward.SetY(0);
-      camera.eye += forward;
-      move_forward = 0;
+      camera.eye += forward * delta_time * move_const;
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
-      camera.eye += backward;
-      move_backward = 0;
+      camera.eye += backward * delta_time * move_const;
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
-      camera.eye += left;
-      move_left = 0;
+      camera.eye += left * delta_time * move_const;
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
-      camera.eye += right;
-      move_right = 0;
+      camera.eye += right * delta_time * move_const;
   }
   if (move_jump) {
       R3Vector up = R3Vector(camera.up);
@@ -831,8 +830,8 @@ void GLUTRedraw(void)
   
   double eye_level = 10; // magic number for now
   if (camera.eye.Y() > eye_level) {
-      R3Vector gravity = R3Vector(0, -0.2, 0);
-      camera.eye += gravity;
+      R3Vector gravity = R3Vector(0, -2, 0);
+      camera.eye += gravity * delta_time;
   }
 
   // Load camera
@@ -848,7 +847,7 @@ void GLUTRedraw(void)
   DrawLights(scene);
 
   // Draw particles
-  DrawParticles(scene);
+  DrawParticles(scene, current_time - time_lost_taking_videos, delta_time);
 
   // Draw particle sources 
   DrawParticleSources(scene);
@@ -917,8 +916,11 @@ void GLUTRedraw(void)
     GLUTStop();
   }
 
+	previous_time = current_time;
   // Swap buffers 
   glutSwapBuffers();
+  
+  
 }    
 
 
@@ -1091,6 +1093,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 */
   case 'W':
   case 'w':
+		fprintf(stderr, "W or w pressed\n");
       move_forward = 1;
       break;
       
@@ -1119,6 +1122,66 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     quit = 1;
     break;
 
+/*
+  case ' ': {
+    printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
+           camera.eye[0], camera.eye[1], camera.eye[2], 
+           camera.towards[0], camera.towards[1], camera.towards[2], 
+           camera.up[0], camera.up[1], camera.up[2], 
+           camera.xfov, camera.neardist, camera.fardist); 
+    break; }*/
+  }
+
+  // Remember mouse position 
+  GLUTmouse[0] = x;
+  GLUTmouse[1] = y;
+
+  // Remember modifiers 
+  GLUTmodifiers = glutGetModifiers();
+
+  // Redraw
+  glutPostRedisplay();
+}
+
+void GLUTKeyboardUp(unsigned char key, int x, int y)
+{
+  // Invert y coordinate
+  y = GLUTwindow_height - y;
+
+  // Process keyboard button event 
+  switch (key) {
+  
+  case 'W':
+  case 'w':
+      move_forward = 0;
+      break;
+      
+  case 'S':
+  case 's':
+      move_backward = 0;
+      break;
+      
+  case 'A':
+  case 'a':
+      move_left = 0;
+      break;
+      
+  case 'D':
+  case 'd':
+      move_right = 0;
+      break;
+  
+/*  
+  case ' ':
+      move_jump = 1;
+      break;
+
+  case 'Q':
+  case 'q':
+  case 27: // ESCAPE
+    quit = 1;
+    break;
+*/
 /*
   case ' ': {
     printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
@@ -1201,10 +1264,15 @@ void GLUTInit(int *argc, char **argv)
   GLUTwindow = glutCreateWindow("OpenGL Viewer");
 
   // Initialize GLUT callback functions 
+  
+  glutIgnoreKeyRepeat(1);
+  
+  
   glutIdleFunc(GLUTIdle);
   glutReshapeFunc(GLUTResize);
   glutDisplayFunc(GLUTRedraw);
   glutKeyboardFunc(GLUTKeyboard);
+  glutKeyboardUpFunc(GLUTKeyboardUp);
   glutSpecialFunc(GLUTSpecial);
   glutMouseFunc(GLUTMouse);
   glutMotionFunc(GLUTMotion);
