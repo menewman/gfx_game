@@ -1,0 +1,45 @@
+camera 0 16 67  0.0287 -0.2 -0.979  -0.004 0.979 -0.200  0.25  0.01 1000
+
+material  0 0 0  1 0 0    1 0 0   0 0 0  0 0 0  10 1 0
+material  0 0 0  0 1 0    0 1 0   0 0 0  0 0 0  10 1 0
+material  0 0 0  0 0 1    0 0 1   0 0 0  0 0 0  10 1 0
+
+particle_source 
+  1 0 0 0 10 1
+  10 1 0.5
+  box -100 -0.5 -100    100 0 100
+
+cylinder 1    0 10 0    0.5 20
+cylinder 1    100 10 100    0.5 20
+cylinder 1    -100 10 100    0.5 20
+cylinder 1    100 10 -100    0.5 20
+cylinder 1    -100 10 -100    0.5 20
+cylinder 1    0 10 100    0.5 20
+cylinder 1    0 10 -100    0.5 20
+cylinder 1    100 10 0    0.5 20
+cylinder 1    -100 10 0    0.5 20
+
+cylinder 1    50 10 50    0.5 20
+cylinder 1    -50 10 50    0.5 20
+cylinder 1    50 10 -50    0.5 20
+cylinder 1    -50 10 -50    0.5 20
+cylinder 1    0 10 50    0.5 20
+cylinder 1    0 10 -50    0.5 20
+cylinder 1    50 10 0    0.5 20
+cylinder 1    -50 10 0    0.5 20
+cylinder 1    100 10 100    0.5 20
+cylinder 1    -100 10 100    0.5 20
+cylinder 1    100 10 -100    0.5 20
+cylinder 1    -100 10 -100    0.5 20
+cylinder 1    0 10 100    0.5 20
+cylinder 1    0 10 -100    0.5 20
+cylinder 1    100 10 0    0.5 20
+cylinder 1    -100 10 0    0.5 20
+cylinder 1    50 10 100    0.5 20
+cylinder 1    -50 10 100    0.5 20
+cylinder 1    100 10 50    0.5 20
+cylinder 1    -100 10 50    0.5 20
+cylinder 1    50 10 -100    0.5 20
+cylinder 1    -50 10 -100    0.5 20
+cylinder 1    100 10 -50    0.5 20
+cylinder 1    -100 10 -50    0.5 20
