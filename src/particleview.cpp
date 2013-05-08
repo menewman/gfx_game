@@ -10,6 +10,7 @@
 #include "R3Scene.h"
 #include "particle.h"
 #include "cos426_opengl.h"
+#include "Bear.h"
 #define PI 3.14159265
 
 ////////////////////////////////////////////////////////////
@@ -35,6 +36,7 @@ static int integration_type = EULER_INTEGRATION;
 
 static R3Scene *scene = NULL;
 static R3Camera camera;
+static Bear player;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -806,39 +808,38 @@ void GLUTRedraw(void)
   camera.right.Project(xzplane);
   
   // move or turn if user pressed keys
-  double move_const = 10;
   if (move_forward) {
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
       forward.SetY(0);
-      camera.eye += forward * delta_time * move_const;
+      camera.eye += forward * delta_time * player.getSpeed();
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
-      camera.eye += backward * delta_time * move_const;
+      camera.eye += backward * delta_time * player.getSpeed();
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
-      camera.eye += left * delta_time * move_const;
+      camera.eye += left * delta_time * player.getSpeed();
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
-      camera.eye += right * delta_time * move_const;
+      camera.eye += right * delta_time * player.getSpeed();
   }
   if (move_jump) {
       R3Vector up = R3Vector(camera.up);
       up.Normalize();
-      up *= 2.0;
+      up *= 2*player.getHeight();
       camera.eye += up;
       move_jump = 0;
   }
-  double turn_rate = .5;
+  double turn_rate = .25;
   if (turn_right) {
       R3Vector axis = R3Vector(0, 1, 0);
       camera.towards.Rotate(axis, -PI* turn_rate * delta_time);
@@ -850,9 +851,9 @@ void GLUTRedraw(void)
       camera.right.Rotate(axis, PI * turn_rate * delta_time);
   }
   
-  double eye_level = 10; // magic number for now
-  if (camera.eye.Y() > eye_level) {
-      R3Vector gravity = R3Vector(0, -2, 0);
+  //double eye_level = 10; // magic number for now
+  if (camera.eye.Y() > player.getHeight()) {
+      R3Vector gravity = player.getMass() * R3Vector(0, -9.8, 0);
       camera.eye += gravity * delta_time;
   }
 
@@ -1429,6 +1430,13 @@ main(int argc, char **argv)
   // Read scene
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
+  
+  // initialize the player bear
+  double mass = 5;
+  double speed = 10;
+  double height = 5;
+  player = Bear(mass, speed, height);
+  camera.eye.SetY(player.getHeight());
 
   // Run GLUT interface
   GLUTMainLoop();
