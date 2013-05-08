@@ -838,17 +838,16 @@ void GLUTRedraw(void)
       camera.eye += up;
       move_jump = 0;
   }
+  double turn_rate = .5;
   if (turn_right) {
       R3Vector axis = R3Vector(0, 1, 0);
-      camera.towards.Rotate(axis, -PI/64.0);
-      camera.right.Rotate(axis, -PI/64.0);
-      turn_right = 0; // rotate?
+      camera.towards.Rotate(axis, -PI* turn_rate * delta_time);
+      camera.right.Rotate(axis, -PI * turn_rate * delta_time);
   }
   if (turn_left) {
       R3Vector axis = R3Vector(0, 1, 0);
-      camera.towards.Rotate(axis, PI/64.0);
-      camera.right.Rotate(axis, PI/64.0);
-      turn_left = 0; // rotate?
+      camera.towards.Rotate(axis, PI * turn_rate * delta_time);
+      camera.right.Rotate(axis, PI * turn_rate * delta_time);
   }
   
   double eye_level = 10; // magic number for now
@@ -1205,6 +1204,16 @@ void GLUTKeyboardUp(unsigned char key, int x, int y)
       move_right = 0;
       break;
   
+    case 'Q':
+  case 'q':
+      turn_left = 0;
+      break;
+      
+  case 'E':
+  case 'e':
+      turn_right = 0;
+      break;
+	  
 /*  
   case ' ':
       move_jump = 1;
