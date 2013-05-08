@@ -851,7 +851,7 @@ void GLUTRedraw(void)
       camera.right.Rotate(axis, PI * turn_rate * delta_time);
   }
   
-  //double eye_level = 10; // magic number for now
+  // TODO - add to player's downward velocity instead of falling at a fixed rate
   if (camera.eye.Y() > player.getHeight()) {
       R3Vector gravity = player.getMass() * R3Vector(0, -9.8, 0);
       camera.eye += gravity * delta_time;
@@ -1435,7 +1435,8 @@ main(int argc, char **argv)
   double mass = 5;
   double speed = 10;
   double height = 5;
-  player = Bear(mass, speed, height);
+  R3Vector init_velocity = R3Vector(0,0,0);
+  player = Bear(mass, speed, height, init_velocity);
   camera.eye.SetY(player.getHeight());
 
   // Run GLUT interface
