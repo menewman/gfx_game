@@ -9,16 +9,37 @@ Bear(void)
 }
 
 Bear::
-Bear(double mass, double speed, double height, R3Vector velocity)
+Bear(double mass, double speed, double height, R3Vector velocity, R3Point position)
     : mass(mass),
       speed(speed),
       height(height),
-      velocity(velocity)
+      velocity(velocity),
+      position(position)
 {
 }
 
 void Bear::
-setVelocity (const R3Vector& newVelocity) 
+setVelocity(const R3Vector& newVelocity) 
 {
-  velocity = newVelocity;
+    velocity = newVelocity;
+}
+
+void Bear::
+setPosition(const R3Point& newPosition)
+{
+    position = newPosition;
+}
+
+void Bear::
+updatePosition(double delta_time)
+{
+    R3Vector grav = R3Vector(0,-9.8,0);
+    R3Vector f_grav = mass * grav;
+    R3Vector accel = f_grav / mass;
+    position.Translate(delta_time * velocity);
+    velocity += delta_time * accel;
+    if (position.Y() <= height) {
+        position.SetY(height);
+        velocity.SetY(0);
+    }
 }

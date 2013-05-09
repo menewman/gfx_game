@@ -3,22 +3,26 @@ class Bear {
 public:
     // constructor functions
     Bear(void);
-    Bear(double mass, double speed, double height, R3Vector velocity);
+    Bear(double mass, double speed, double height, R3Vector velocity, R3Point position);
 
     // bear property functions/operators
     const double getMass(void) const;
     const double getSpeed(void) const;
     const double getHeight(void) const;
     const R3Vector& getVelocity(void) const;
+    const R3Point& getPosition(void) const;
 
     // manipulation functions/operators
     virtual void setVelocity(const R3Vector& newVelocity);
+    virtual void setPosition(const R3Point& newPosition);
+    virtual void updatePosition(double delta_time);
 
 private:
     double mass;
     double speed;
     double height;
     R3Vector velocity;
+    R3Point position;
 };
 
 // Inline functions
@@ -48,4 +52,11 @@ getVelocity(void) const
 {
     // return bear velocity
     return velocity;
+}
+
+inline const R3Point& Bear::
+getPosition(void) const
+{
+    // return bear position
+    return position;
 }

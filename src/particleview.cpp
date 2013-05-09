@@ -12,6 +12,7 @@
 #include "cos426_opengl.h"
 #include "Bear.h"
 #define PI 3.14159265
+#define TOLERANCE 0.0001
 
 ////////////////////////////////////////////////////////////
 // GLOBAL CONSTANTS
@@ -790,7 +791,9 @@ void GLUTRedraw(void)
 
   // time passed since starting
   double delta_time = current_time - previous_time;
-
+  
+  // update y-position
+  player.updatePosition(delta_time);
 
   if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
     delta_time = VIDEO_FRAME_DELAY;    
@@ -812,31 +815,32 @@ void GLUTRedraw(void)
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
       forward.SetY(0);
-      camera.eye += forward * delta_time * player.getSpeed();
+      player.setPosition(player.getPosition() + forward*delta_time * player.getSpeed());
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
-      camera.eye += backward * delta_time * player.getSpeed();
+      player.setPosition(player.getPosition() + backward*delta_time * player.getSpeed());
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
-      camera.eye += left * delta_time * player.getSpeed();
+      player.setPosition(player.getPosition() + left*delta_time * player.getSpeed());
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
-      camera.eye += right * delta_time * player.getSpeed();
+      player.setPosition(player.getPosition() + right*delta_time * player.getSpeed());
   }
   if (move_jump) {
-      R3Vector up = R3Vector(camera.up);
-      up.Normalize();
-      up *= 2*player.getHeight();
-      camera.eye += up;
+      if (player.getPosition().Y() <= (player.getHeight() + TOLERANCE)) {
+          R3Vector velo = R3Vector(player.getVelocity());
+          velo += R3Vector(0,10,0); // magic number
+          player.setVelocity(velo);
+      }
       move_jump = 0;
   }
   double turn_rate = .25;
@@ -851,11 +855,8 @@ void GLUTRedraw(void)
       camera.right.Rotate(axis, PI * turn_rate * delta_time);
   }
   
-  // TODO - add to player's downward velocity instead of falling at a fixed rate
-  if (camera.eye.Y() > player.getHeight()) {
-      R3Vector gravity = player.getMass() * R3Vector(0, -9.8, 0);
-      camera.eye += gravity * delta_time;
-  }
+  // set the camera to the player's position
+  camera.eye = player.getPosition();
 
   // Load camera
   LoadCamera(&camera);
@@ -1432,11 +1433,11 @@ main(int argc, char **argv)
   if (!scene) exit(-1);
   
   // initialize the player bear
-  double mass = 5;
+  double mass = 100000;
   double speed = 10;
   double height = 5;
   R3Vector init_velocity = R3Vector(0,0,0);
-  player = Bear(mass, speed, height, init_velocity);
+  player = Bear(mass, speed, height, init_velocity, R3Point(camera.eye));
   camera.eye.SetY(player.getHeight());
 
   // Run GLUT interface
