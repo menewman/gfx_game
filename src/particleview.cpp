@@ -10,6 +10,7 @@
 #include "R3Scene.h"
 #include "particle.h"
 #include "cos426_opengl.h"
+#include "bear.h"
 
 
 ////////////////////////////////////////////////////////////
@@ -683,6 +684,50 @@ void DrawParticleSprings(R3Scene *scene)
   if (lighting) glEnable(GL_LIGHTING);
 }
 
+void DrawTextBox() 
+{
+	// glLoadIdentity();
+	// glTranslatef(-1.5f,0.0f,-6.0f);
+	// glBegin(GL_QUADS);
+	// glColor3d(1, 1, 1);  
+	// glVertex3f(2.0f, -1.0f, 0.0f);              // Top Right
+	// glVertex3f(0.0f,-1.0f, 0.0f);               // Top Left
+	// glVertex3f(0.0f,-1.5f, 0.0f);              // Bottom Left
+	// glVertex3f(2.0f,-1.5f, 0.0f);              // Bottom Right
+	// glEnd();   
+
+int XSize = glutGet(GLUT_WINDOW_WIDTH);
+int YSize = glutGet(GLUT_WINDOW_HEIGHT);
+glMatrixMode (GL_PROJECTION);
+glLoadIdentity();
+glOrtho (0, XSize, YSize, 0, 0, 1);
+glMatrixMode (GL_MODELVIEW);
+glLoadIdentity();
+
+glDisable(GL_DEPTH_TEST);
+glColor3d(1, 1, 1); 
+glBegin(GL_QUADS); 
+// Top left corner of the screen is (0, 0) 
+	glVertex2f(150, YSize - 7);     // Bottom Right         
+	glVertex2f(7, YSize - 7);       //Bottom Left        
+	glVertex2f(7, YSize - 50);          //Top Left
+	glVertex2f(150, YSize - 50);       //Top Right
+glEnd();
+
+glColor3d(0, 0, 0);
+glRasterPos2i(10, YSize - 25);
+const char *s = "word";
+for (int i = 0; i < 4; i++)
+{
+    char c = *(s + i);
+    glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
+}
+
+
+glEnable(GL_DEPTH_TEST);	
+  
+}
+
 
 
 ////////////////////////////////////////////////////////////
@@ -835,6 +880,9 @@ void GLUTRedraw(void)
       camera.eye += gravity;
   }
 
+  //update bear object
+  
+  
   // Load camera
   LoadCamera(&camera);
 
@@ -874,6 +922,10 @@ void GLUTRedraw(void)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
+  // Draw rectangle in lower left corner
+  glDisable(GL_LIGHTING);
+  DrawTextBox();
+  
   // Save image
   if (save_image) {
     char image_name[256];
