@@ -13,6 +13,7 @@
 #include "Bear.h"
 #define PI 3.14159265
 #define TOLERANCE 0.0001
+#define BOUND 500
 
 ////////////////////////////////////////////////////////////
 // GLOBAL CONSTANTS
@@ -567,12 +568,23 @@ void UpdateParticleSources(R3Scene *scene, double delta_time) {
     for (int i = 0; i < scene->NParticleSources(); i++) {
         R3ParticleSource *source = scene->ParticleSource(i);
         if (source->shape->type == R3_SPHERE_SHAPE) {
-            //R3Vector randV = R3Vector(RandomNumber(), 0, RandomNumber());
-            //randV.Normalize();
+            double hunter_speed = 5;
+            
             R3Vector toPlayer = player.getPosition() - source->shape->sphere->Center();
             toPlayer.SetY(0);
             toPlayer.Normalize();
-            R3Point newCenter = source->shape->sphere->Center() + toPlayer*delta_time;
+            R3Point newCenter = source->shape->sphere->Center() + toPlayer*delta_time*hunter_speed;
+            
+            // keep from leaving map
+            if (newCenter.X() > BOUND)
+              newCenter.SetX(BOUND);
+            else if (newCenter.X() < -BOUND)
+              newCenter.SetX(-BOUND);
+            if (newCenter.Z() > BOUND)
+              newCenter.SetZ(BOUND);
+            else if (newCenter.Z() < -BOUND)
+              newCenter.SetZ(-BOUND);
+              
             source->shape->sphere->Reposition(newCenter);
         }
         /*else if (source->shape->type == R3_BOX_SHAPE) {
@@ -900,6 +912,18 @@ void GLUTRedraw(void)
       camera.towards.Rotate(axis, PI * turn_rate * delta_time);
       camera.right.Rotate(axis, PI * turn_rate * delta_time);
   }
+  
+  // make sure that player doesn't leave the map
+  R3Point newPosition = R3Point(player.getPosition());
+  if (newPosition.X() > BOUND)
+      newPosition.SetX(BOUND);
+  else if (newPosition.X() < -BOUND)
+      newPosition.SetX(-BOUND);
+  if (newPosition.Z() > BOUND)
+      newPosition.SetZ(BOUND);
+  else if (newPosition.Z() < -BOUND)
+      newPosition.SetZ(-BOUND);
+  player.setPosition(newPosition);
   
   // set the camera to the player's position
   camera.eye = player.getPosition();
