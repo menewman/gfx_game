@@ -11,6 +11,7 @@
 #include "particle.h"
 #include "cos426_opengl.h"
 #include "Bear.h"
+#include "Prey.h"
 #define PI 3.14159265
 #define TOLERANCE 0.0001
 #define BOUND 500
@@ -564,12 +565,12 @@ void DrawParticles(R3Scene *scene, double current_time, double delta_time)
 
 // move particle sources randomly around
 void UpdateParticleSources(R3Scene *scene, double delta_time) {
+    double hunter_speed = 5;
+    
     // iterate through particle sources, do a random walk in xz-plane
     for (int i = 0; i < scene->NParticleSources(); i++) {
         R3ParticleSource *source = scene->ParticleSource(i);
-        if (source->shape->type == R3_SPHERE_SHAPE) {
-            double hunter_speed = 5;
-            
+        if (source->shape->type == R3_SPHERE_SHAPE) {            
             R3Vector toPlayer = player.getPosition() - source->shape->sphere->Center();
             toPlayer.SetY(0);
             toPlayer.Normalize();
@@ -594,8 +595,6 @@ void UpdateParticleSources(R3Scene *scene, double delta_time) {
         else if (source->shape->type == R3_CONE_SHAPE) {
         }
         else if (source->shape->type == R3_MESH_SHAPE) {
-        }
-        else if (source->shape->type == R3_SEGMENT_SHAPE) {
         }
         else if (source->shape->type == R3_SEGMENT_SHAPE) {
         }

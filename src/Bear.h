@@ -17,12 +17,19 @@ public:
     virtual void setPosition(const R3Point& newPosition);
     virtual void updatePosition(double delta_time);
 
-private:
+    // public variables
     double mass;
     double speed;
     double height;
     R3Vector velocity;
     R3Point position;
+/*
+private:
+    double mass;
+    double speed;
+    double height;
+    R3Vector velocity;
+    R3Point position;*/
 };
 
 // Inline functions
