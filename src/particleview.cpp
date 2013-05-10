@@ -549,13 +549,11 @@ void DrawScene(R3Scene *scene)
 
 void DrawParticles(R3Scene *scene, double current_time, double delta_time)
 {
-  
-
   // Update particles
   UpdateParticles(scene, current_time, delta_time, integration_type, 1);
 
   // Generate new particles
-  GenerateParticles(scene, current_time , delta_time);
+  GenerateParticles(scene, current_time , delta_time, player.getPosition());
 
   // Render particles
   if (show_particles) RenderParticles(scene, current_time, delta_time);
@@ -563,9 +561,43 @@ void DrawParticles(R3Scene *scene, double current_time, double delta_time)
   
 }
 
+// move particle sources randomly around
+void UpdateParticleSources(R3Scene *scene, double delta_time) {
+    // iterate through particle sources, do a random walk in xz-plane
+    for (int i = 0; i < scene->NParticleSources(); i++) {
+        R3ParticleSource *source = scene->ParticleSource(i);
+        if (source->shape->type == R3_SPHERE_SHAPE) {
+            //R3Vector randV = R3Vector(RandomNumber(), 0, RandomNumber());
+            //randV.Normalize();
+            R3Vector toPlayer = player.getPosition() - source->shape->sphere->Center();
+            toPlayer.SetY(0);
+            toPlayer.Normalize();
+            R3Point newCenter = source->shape->sphere->Center() + toPlayer*delta_time;
+            source->shape->sphere->Reposition(newCenter);
+        }
+        /*else if (source->shape->type == R3_BOX_SHAPE) {
+        }
+        else if (source->shape->type == R3_CYLINDER_SHAPE) {
+        }
+        else if (source->shape->type == R3_CONE_SHAPE) {
+        }
+        else if (source->shape->type == R3_MESH_SHAPE) {
+        }
+        else if (source->shape->type == R3_SEGMENT_SHAPE) {
+        }
+        else if (source->shape->type == R3_SEGMENT_SHAPE) {
+        }
+        else if (source->shape->type == R3_CIRCLE_SHAPE) {
+        }*/
+    }
+}
 
-void DrawParticleSources(R3Scene *scene)
+
+void DrawParticleSources(R3Scene *scene, double delta_time)
 {
+  // update the particle sources
+  UpdateParticleSources(scene, delta_time);
+
   // Check if should draw particle sources
   if (!show_particle_sources_and_sinks) return;
 
@@ -776,11 +808,10 @@ void GLUTRedraw(void)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
   
-  /////////  Do time stuff, moved here from DrawParticles to use current time and delta_time in game logic
+  //  Do time stuff
   // Get current time (in seconds) since start of execution
   double current_time = GetTime();
   static double previous_time = 0;
-
 
   static double time_lost_taking_videos = 0; // for switching back and forth
 					     // between recording and not
@@ -795,9 +826,10 @@ void GLUTRedraw(void)
   // update y-position
   player.updatePosition(delta_time);
 
-  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
+  if (save_video) { // in video mode, time that passes only depends on frame rate
     delta_time = VIDEO_FRAME_DELAY;    
-    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
+    // ... but we need to keep track how much time we gained and lost
+    //     so that we can arbitrarily switch back and forth ...
     time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
   } else { // real time simulation
     delta_time = current_time - previous_time;
@@ -811,6 +843,7 @@ void GLUTRedraw(void)
   camera.right.Project(xzplane);
   
   // move or turn if user pressed keys
+  // TODO - offload this into a separate function?
   if (move_forward) {
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
@@ -874,7 +907,7 @@ void GLUTRedraw(void)
   DrawParticles(scene, current_time - time_lost_taking_videos, delta_time);
 
   // Draw particle sources 
-  DrawParticleSources(scene);
+  DrawParticleSources(scene, delta_time);
 
   // Draw particle sinks 
   DrawParticleSinks(scene);
@@ -1433,10 +1466,10 @@ main(int argc, char **argv)
   if (!scene) exit(-1);
   
   // initialize the player bear
-  double mass = 100000;
-  double speed = 10;
+  double mass = 100;
+  double speed = 20;
   double height = 5;
-  R3Vector init_velocity = R3Vector(0,0,0);
+  R3Vector init_velocity = R3Vector(0, 0, 0);
   player = Bear(mass, speed, height, init_velocity, R3Point(camera.eye));
   camera.eye.SetY(player.getHeight());
 

@@ -33,7 +33,7 @@ setPosition(const R3Point& newPosition)
 void Bear::
 updatePosition(double delta_time)
 {
-    R3Vector grav = R3Vector(0,-9.8,0);
+    R3Vector grav = R3Vector(0,-15,0);
     R3Vector f_grav = mass * grav;
     R3Vector accel = f_grav / mass;
     position.Translate(delta_time * velocity);

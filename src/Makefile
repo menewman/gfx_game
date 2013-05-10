@@ -6,7 +6,7 @@
 # List of source files
 #
 
-SRCS=particleview.cpp particle.cpp R3Scene.cpp
+SRCS=particleview.cpp particle.cpp R3Scene.cpp Bear.cpp
 OBJS=$(SRCS:.cpp=.o)
 
 #
@@ -64,6 +64,7 @@ jpeg/libjpeg.a:
 
 clean:
 	    rm -f *.o particleview
+	    rm -f *~
 		$(MAKE) -C R3 clean
 		$(MAKE) -C R2 clean
 		$(MAKE) -C jpeg clean
