@@ -40,6 +40,7 @@ static int integration_type = EULER_INTEGRATION;
 static R3Scene *scene = NULL;
 static R3Camera camera;
 static Bear player;
+static vector<Prey> prey_list;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -695,6 +696,41 @@ void DrawParticleSinks(R3Scene *scene)
 }
 
 
+void DrawPrey(R3Scene *scene, double delta_time)
+{
+  // update the prey
+  for (unsigned int i = 0; i < prey_list.size(); i++)
+    prey_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
+
+  // Setup
+  GLboolean lighting = glIsEnabled(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
+
+  // Define prey material
+  static R3Material prey_material;
+  if (prey_material.id != 33) {
+    // green
+    prey_material.ka.Reset(0.2,0.2,0.2,1);
+    prey_material.kd.Reset(0,1,0,1);
+    prey_material.ks.Reset(0,1,0,1);
+    prey_material.kt.Reset(0,0,0,1);
+    prey_material.emission.Reset(0,0,0,1);
+    prey_material.shininess = 1;
+    prey_material.indexofrefraction = 1;
+    prey_material.texture = NULL;
+    prey_material.texture_index = -1;
+    prey_material.id = 33;
+  }
+
+  // Draw all particle sources
+  glEnable(GL_LIGHTING);
+  LoadMaterial(&prey_material);
+  for (unsigned int i = 0; i < prey_list.size(); i++)
+    DrawShape(&prey_list[i].shape);
+
+  // Clean up
+  if (!lighting) glDisable(GL_LIGHTING);
+}
 
 void DrawParticleSprings(R3Scene *scene)
 {
@@ -950,6 +986,9 @@ void GLUTRedraw(void)
 
   // Draw particle springs
   DrawParticleSprings(scene);
+  
+  // Draw prey
+  DrawPrey(scene, delta_time);
 
   // Draw scene surfaces
   if (show_faces) {
@@ -1508,9 +1547,29 @@ main(int argc, char **argv)
   R3Vector init_velocity = R3Vector(0, 0, 0);
   player = Bear(mass, speed, height, init_velocity, R3Point(camera.eye));
   camera.eye.SetY(player.getHeight());
+  
+  R3Shape *shape1 = new R3Shape();
+  R3Shape *shape2 = new R3Shape();
+  
+  shape1->type = R3_SPHERE_SHAPE;
+  shape2->type = R3_SPHERE_SHAPE;
+  
+  R3Sphere sphere1 = R3Sphere(R3Point(3,3,3), 3);
+  R3Sphere sphere2 = R3Sphere(R3Point(-3,3,-3), 3);
+  shape1->sphere = &sphere1;
+  shape2->sphere = &sphere2;
+  
+  // initialize some prey
+  Prey prey1 = Prey(100, 20, R3Point(3,3,3), R3Vector(0,0,0), *shape1);
+  Prey prey2 = Prey(100, 15, R3Point(-3,3,-3), R3Vector(0,0,0), *shape2);
+  prey_list.push_back(prey1);
+  prey_list.push_back(prey2);
 
   // Run GLUT interface
   GLUTMainLoop();
+  
+  delete shape1;
+  delete shape2;
 
   // Return success 
   return 0;

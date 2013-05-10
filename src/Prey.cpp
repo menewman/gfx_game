@@ -3,6 +3,7 @@
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "Prey.h"
+#define SCARE_BOUND 100
 
 Prey::
 Prey(void) {}
@@ -33,6 +34,10 @@ updatePosition(double delta_time, R3Point playerPos, double bound)
 {
     R3Vector fromPlayer = position - playerPos;
     fromPlayer.SetY(0);
+    
+    if (fromPlayer.Length() > SCARE_BOUND)
+        return;
+        
     fromPlayer.Normalize();
     
     position += fromPlayer*delta_time*speed;
