@@ -2,8 +2,8 @@
 class Hunter {
 public:
     // constructor functions
-    Prey(void);
-    Prey(double mass, double speed, R3Point position, R3Vector velocity, R3ParticleSource source);
+    Hunter(void);
+    Hunter(double mass, double speed, R3Point position, R3Vector velocity, R3ParticleSource source);
 
     // property functions/operators
     const double getMass(void) const;
