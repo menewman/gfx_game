@@ -26,6 +26,7 @@ struct R3Intersection {
 };
 
 // Particle system functions
+double RandomNumber(void);
 R3Intersection *ComputeIntersection(R3Ray ray, R3Sphere sphere);
 R3Intersection *ComputeIntersection(R3Segment segment, R3Sphere sphere);
 R3Intersection *ComputeIntersection(R3Ray ray, R3Circle circle);
@@ -33,7 +34,7 @@ R3Intersection *ComputeIntersection(R3Segment segment, R3Circle circle);
 R3Intersection *ComputeIntersection(R3Segment seg1, R3Segment seg2);
 void UpdateParticles(R3Scene *scene, double current_time, double delta_time, int integration_type);
 void UpdateParticles(R3Scene *scene, double current_time, double delta_time, int integration_type, int substeps);
-void GenerateParticles(R3Scene *scene, double current_time, double delta_time);
+void GenerateParticles(R3Scene *scene, double current_time, double delta_time, R3Point playerPos);
 void RenderParticles(R3Scene *scene, double current_time, double delta_time);
 
 

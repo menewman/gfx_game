@@ -10,8 +10,11 @@
 #include "R3Scene.h"
 #include "particle.h"
 #include "cos426_opengl.h"
-#include "bear.h"
-
+#include "Bear.h"
+#include "Prey.h"
+#define PI 3.14159265
+#define TOLERANCE 0.0001
+#define BOUND 500
 
 ////////////////////////////////////////////////////////////
 // GLOBAL CONSTANTS
@@ -36,6 +39,8 @@ static int integration_type = EULER_INTEGRATION;
 
 static R3Scene *scene = NULL;
 static R3Camera camera;
+static Bear player;
+static vector<Prey> prey_list;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -53,6 +58,8 @@ static int move_backward = 0;
 static int move_left = 0;
 static int move_right = 0;
 static int move_jump = 0;
+static int turn_left = 0;
+static int turn_right = 0;
 
 
 // GLUT variables 
@@ -146,6 +153,42 @@ static double GetTime(void)
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
 ////////////////////////////////////////////////////////////
+void DrawTextBox() 
+{ 
+
+int XSize = glutGet(GLUT_WINDOW_WIDTH);
+int YSize = glutGet(GLUT_WINDOW_HEIGHT);
+glMatrixMode (GL_PROJECTION);
+glLoadIdentity();
+glOrtho (0, XSize, YSize, 0, 0, 1);
+glMatrixMode (GL_MODELVIEW);
+glLoadIdentity();
+
+glDisable(GL_DEPTH_TEST);
+glColor3d(1, 1, 1); 
+glBegin(GL_QUADS); 
+// Top left corner of the screen is (0, 0) 
+	glVertex2f(150, YSize - 7);     // Bottom Right         
+	glVertex2f(7, YSize - 7);       //Bottom Left        
+	glVertex2f(7, YSize - 50);          //Top Left
+	glVertex2f(150, YSize - 50);       //Top Right
+glEnd();
+
+glColor3d(0, 0, 0);
+glRasterPos2i(10, YSize - 25);
+const char *s = "word";
+for (int i = 0; i < 4; i++)
+{
+    char c = *(s + i);
+    glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
+}
+
+
+glEnable(GL_DEPTH_TEST);	
+  
+}
+
+
 
 void DrawShape(R3Shape *shape)
 {
@@ -543,48 +586,66 @@ void DrawScene(R3Scene *scene)
 }
 
 
-void DrawParticles(R3Scene *scene)
+void DrawParticles(R3Scene *scene, double current_time, double delta_time)
 {
-  // Get current time (in seconds) since start of execution
-  double current_time = GetTime();
-  static double previous_time = 0;
-
-
-  static double time_lost_taking_videos = 0; // for switching back and forth
-					     // between recording and not
-					     // recording smoothly
-
-  // program just started up?
-  if (previous_time == 0) previous_time = current_time;
-
-  // time passed since starting
-  double delta_time = current_time - previous_time;
-
-
-  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
-    delta_time = VIDEO_FRAME_DELAY;    
-    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
-    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
-  } else { // real time simulation
-    delta_time = current_time - previous_time;
-  }
-
   // Update particles
-  UpdateParticles(scene, current_time - time_lost_taking_videos, delta_time, integration_type, 1);
+  UpdateParticles(scene, current_time, delta_time, integration_type, 1);
 
   // Generate new particles
-  GenerateParticles(scene, current_time - time_lost_taking_videos, delta_time);
+  GenerateParticles(scene, current_time , delta_time, player.getPosition());
 
   // Render particles
-  if (show_particles) RenderParticles(scene, current_time - time_lost_taking_videos, delta_time);
+  if (show_particles) RenderParticles(scene, current_time, delta_time);
 
-  // Remember previous time
-  previous_time = current_time;
+  
+}
+
+// move particle sources randomly around
+void UpdateParticleSources(R3Scene *scene, double delta_time) {
+    double hunter_speed = 5;
+    
+    // iterate through particle sources, do a random walk in xz-plane
+    for (int i = 0; i < scene->NParticleSources(); i++) {
+        R3ParticleSource *source = scene->ParticleSource(i);
+        if (source->shape->type == R3_SPHERE_SHAPE) {            
+            R3Vector toPlayer = player.getPosition() - source->shape->sphere->Center();
+            toPlayer.SetY(0);
+            toPlayer.Normalize();
+            R3Point newCenter = source->shape->sphere->Center() + toPlayer*delta_time*hunter_speed;
+            
+            // keep from leaving map
+            if (newCenter.X() > BOUND)
+              newCenter.SetX(BOUND);
+            else if (newCenter.X() < -BOUND)
+              newCenter.SetX(-BOUND);
+            if (newCenter.Z() > BOUND)
+              newCenter.SetZ(BOUND);
+            else if (newCenter.Z() < -BOUND)
+              newCenter.SetZ(-BOUND);
+              
+            source->shape->sphere->Reposition(newCenter);
+        }
+        /*else if (source->shape->type == R3_BOX_SHAPE) {
+        }
+        else if (source->shape->type == R3_CYLINDER_SHAPE) {
+        }
+        else if (source->shape->type == R3_CONE_SHAPE) {
+        }
+        else if (source->shape->type == R3_MESH_SHAPE) {
+        }
+        else if (source->shape->type == R3_SEGMENT_SHAPE) {
+        }
+        else if (source->shape->type == R3_CIRCLE_SHAPE) {
+        }*/
+    }
 }
 
 
-void DrawParticleSources(R3Scene *scene)
+void DrawParticleSources(R3Scene *scene, double delta_time)
 {
+  // update the particle sources
+  UpdateParticleSources(scene, delta_time);
+
   // Check if should draw particle sources
   if (!show_particle_sources_and_sinks) return;
 
@@ -595,9 +656,22 @@ void DrawParticleSources(R3Scene *scene)
   // Define source material
   static R3Material source_material;
   if (source_material.id != 33) {
-    source_material.ka.Reset(0.2,0.2,0.2,1);
+    // green
+    /*source_material.ka.Reset(0.2,0.2,0.2,1);
     source_material.kd.Reset(0,1,0,1);
     source_material.ks.Reset(0,1,0,1);
+    source_material.kt.Reset(0,0,0,1);
+    source_material.emission.Reset(0,0,0,1);
+    source_material.shininess = 1;
+    source_material.indexofrefraction = 1;
+    source_material.texture = NULL;
+    source_material.texture_index = -1;
+    source_material.id = 33;*/
+    
+    // red
+    source_material.ka.Reset(0.2,0.2,0.2,1);
+    source_material.kd.Reset(1,0,0,1);
+    source_material.ks.Reset(1,0,0,1);
     source_material.kt.Reset(0,0,0,1);
     source_material.emission.Reset(0,0,0,1);
     source_material.shininess = 1;
@@ -658,6 +732,41 @@ void DrawParticleSinks(R3Scene *scene)
 }
 
 
+void DrawPrey(R3Scene *scene, double delta_time)
+{
+  // update the prey
+  for (unsigned int i = 0; i < prey_list.size(); i++)
+    prey_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
+
+  // Setup
+  GLboolean lighting = glIsEnabled(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
+
+  // Define prey material
+  static R3Material prey_material;
+  if (prey_material.id != 33) {
+    // green
+    prey_material.ka.Reset(0.2,0.2,0.2,1);
+    prey_material.kd.Reset(0,1,0,1);
+    prey_material.ks.Reset(0,1,0,1);
+    prey_material.kt.Reset(0,0,0,1);
+    prey_material.emission.Reset(0,0,0,1);
+    prey_material.shininess = 1;
+    prey_material.indexofrefraction = 1;
+    prey_material.texture = NULL;
+    prey_material.texture_index = -1;
+    prey_material.id = 33;
+  }
+
+  // Draw all particle sources
+  glEnable(GL_LIGHTING);
+  LoadMaterial(&prey_material);
+  for (unsigned int i = 0; i < prey_list.size(); i++)
+    DrawShape(&prey_list[i].shape);
+
+  // Clean up
+  if (!lighting) glDisable(GL_LIGHTING);
+}
 
 void DrawParticleSprings(R3Scene *scene)
 {
@@ -682,50 +791,6 @@ void DrawParticleSprings(R3Scene *scene)
 
   // Clean up
   if (lighting) glEnable(GL_LIGHTING);
-}
-
-void DrawTextBox() 
-{
-	// glLoadIdentity();
-	// glTranslatef(-1.5f,0.0f,-6.0f);
-	// glBegin(GL_QUADS);
-	// glColor3d(1, 1, 1);  
-	// glVertex3f(2.0f, -1.0f, 0.0f);              // Top Right
-	// glVertex3f(0.0f,-1.0f, 0.0f);               // Top Left
-	// glVertex3f(0.0f,-1.5f, 0.0f);              // Bottom Left
-	// glVertex3f(2.0f,-1.5f, 0.0f);              // Bottom Right
-	// glEnd();   
-
-int XSize = glutGet(GLUT_WINDOW_WIDTH);
-int YSize = glutGet(GLUT_WINDOW_HEIGHT);
-glMatrixMode (GL_PROJECTION);
-glLoadIdentity();
-glOrtho (0, XSize, YSize, 0, 0, 1);
-glMatrixMode (GL_MODELVIEW);
-glLoadIdentity();
-
-glDisable(GL_DEPTH_TEST);
-glColor3d(1, 1, 1); 
-glBegin(GL_QUADS); 
-// Top left corner of the screen is (0, 0) 
-	glVertex2f(150, YSize - 7);     // Bottom Right         
-	glVertex2f(7, YSize - 7);       //Bottom Left        
-	glVertex2f(7, YSize - 50);          //Top Left
-	glVertex2f(150, YSize - 50);       //Top Right
-glEnd();
-
-glColor3d(0, 0, 0);
-glRasterPos2i(10, YSize - 25);
-const char *s = "word";
-for (int i = 0; i < 4; i++)
-{
-    char c = *(s + i);
-    glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
-}
-
-
-glEnable(GL_DEPTH_TEST);	
-  
 }
 
 
@@ -838,51 +903,102 @@ void GLUTRedraw(void)
   glClearColor(background[0], background[1], background[2], background[3]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
+  
+  //  Do time stuff
+  // Get current time (in seconds) since start of execution
+  double current_time = GetTime();
+  static double previous_time = 0;
+
+  static double time_lost_taking_videos = 0; // for switching back and forth
+					     // between recording and not
+					     // recording smoothly
+
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
+
+  // time passed since starting
+  double delta_time = current_time - previous_time;
+  
+  // update y-position
+  player.updatePosition(delta_time);
+
+  if (save_video) { // in video mode, time that passes only depends on frame rate
+    delta_time = VIDEO_FRAME_DELAY;    
+    // ... but we need to keep track how much time we gained and lost
+    //     so that we can arbitrarily switch back and forth ...
+    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
+  } else { // real time simulation
+    delta_time = current_time - previous_time;
+  }
+  
+  // normalizing things for rotation?
+  camera.up = R3Vector(0,1,0);
+  R3Point origin = R3Point(0,0,0);
+  R3Plane xzplane = R3Plane(origin, camera.up);
+  camera.towards.Project(xzplane);
+  camera.right.Project(xzplane);
+  
+  // move or turn if user pressed keys
+  // TODO - offload this into a separate function?
   if (move_forward) {
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
       forward.SetY(0);
-      camera.eye += forward;
-      move_forward = 0;
+      player.setPosition(player.getPosition() + forward*delta_time * player.getSpeed());
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
-      camera.eye += backward;
-      move_backward = 0;
+      player.setPosition(player.getPosition() + backward*delta_time * player.getSpeed());
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
-      camera.eye += left;
-      move_left = 0;
+      player.setPosition(player.getPosition() + left*delta_time * player.getSpeed());
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
-      camera.eye += right;
-      move_right = 0;
+      player.setPosition(player.getPosition() + right*delta_time * player.getSpeed());
   }
   if (move_jump) {
-      R3Vector up = R3Vector(camera.up);
-      up.Normalize();
-      up *= 2.0;
-      camera.eye += up;
+      if (player.getPosition().Y() <= (player.getHeight() + TOLERANCE)) {
+          R3Vector velo = R3Vector(player.getVelocity());
+          velo += R3Vector(0,10,0); // magic number
+          player.setVelocity(velo);
+      }
       move_jump = 0;
   }
-  
-  double eye_level = 10; // magic number for now
-  if (camera.eye.Y() > eye_level) {
-      R3Vector gravity = R3Vector(0, -0.2, 0);
-      camera.eye += gravity;
+  double turn_rate = .25;
+  if (turn_right) {
+      R3Vector axis = R3Vector(0, 1, 0);
+      camera.towards.Rotate(axis, -PI* turn_rate * delta_time);
+      camera.right.Rotate(axis, -PI * turn_rate * delta_time);
   }
+  if (turn_left) {
+      R3Vector axis = R3Vector(0, 1, 0);
+      camera.towards.Rotate(axis, PI * turn_rate * delta_time);
+      camera.right.Rotate(axis, PI * turn_rate * delta_time);
+  }
+  
+  // make sure that player doesn't leave the map
+  R3Point newPosition = R3Point(player.getPosition());
+  if (newPosition.X() > BOUND)
+      newPosition.SetX(BOUND);
+  else if (newPosition.X() < -BOUND)
+      newPosition.SetX(-BOUND);
+  if (newPosition.Z() > BOUND)
+      newPosition.SetZ(BOUND);
+  else if (newPosition.Z() < -BOUND)
+      newPosition.SetZ(-BOUND);
+  player.setPosition(newPosition);
+  
+  // set the camera to the player's position
+  camera.eye = player.getPosition();
 
-  //update bear object
-  
-  
   // Load camera
   LoadCamera(&camera);
 
@@ -896,16 +1012,19 @@ void GLUTRedraw(void)
   DrawLights(scene);
 
   // Draw particles
-  DrawParticles(scene);
+  DrawParticles(scene, current_time - time_lost_taking_videos, delta_time);
 
   // Draw particle sources 
-  DrawParticleSources(scene);
+  DrawParticleSources(scene, delta_time);
 
   // Draw particle sinks 
   DrawParticleSinks(scene);
 
   // Draw particle springs
   DrawParticleSprings(scene);
+  
+  // Draw prey
+  DrawPrey(scene, delta_time);
 
   // Draw scene surfaces
   if (show_faces) {
@@ -921,10 +1040,10 @@ void GLUTRedraw(void)
     DrawScene(scene);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
-
-  // Draw rectangle in lower left corner
+  
   glDisable(GL_LIGHTING);
   DrawTextBox();
+  
   
   // Save image
   if (save_image) {
@@ -969,8 +1088,11 @@ void GLUTRedraw(void)
     GLUTStop();
   }
 
+	previous_time = current_time;
   // Swap buffers 
   glutSwapBuffers();
+  
+  
 }    
 
 
@@ -1109,12 +1231,12 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   case 'c':
     show_camera = !show_camera;
     break;
-
+/*
   case 'E':
   case 'e':
     show_edges = !show_edges;
     break;
-
+*/
   case 'F':
   case 'f':
     show_faces = !show_faces;
@@ -1164,13 +1286,95 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   case ' ':
       move_jump = 1;
       break;
+      
+  case 'Q':
+  case 'q':
+      turn_left = 1;
+      break;
+      
+  case 'E':
+  case 'e':
+      turn_right = 1;
+      break;
+      
+/*
+  case 'Q':
+  case 'q':
+  case 27: // ESCAPE
+    quit = 1;
+    break;
+*/
+
+/*
+  case ' ': {
+    printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
+           camera.eye[0], camera.eye[1], camera.eye[2], 
+           camera.towards[0], camera.towards[1], camera.towards[2], 
+           camera.up[0], camera.up[1], camera.up[2], 
+           camera.xfov, camera.neardist, camera.fardist); 
+    break; }*/
+  }
+
+  // Remember mouse position 
+  GLUTmouse[0] = x;
+  GLUTmouse[1] = y;
+
+  // Remember modifiers 
+  GLUTmodifiers = glutGetModifiers();
+
+  // Redraw
+  glutPostRedisplay();
+}
+
+void GLUTKeyboardUp(unsigned char key, int x, int y)
+{
+  // Invert y coordinate
+  y = GLUTwindow_height - y;
+
+  // Process keyboard button event 
+  switch (key) {
+  
+  case 'W':
+  case 'w':
+      move_forward = 0;
+      break;
+      
+  case 'S':
+  case 's':
+      move_backward = 0;
+      break;
+      
+  case 'A':
+  case 'a':
+      move_left = 0;
+      break;
+      
+  case 'D':
+  case 'd':
+      move_right = 0;
+      break;
+  
+    case 'Q':
+  case 'q':
+      turn_left = 0;
+      break;
+      
+  case 'E':
+  case 'e':
+      turn_right = 0;
+      break;
+	  
+/*  
+  case ' ':
+      move_jump = 1;
+      break;
 
   case 'Q':
   case 'q':
   case 27: // ESCAPE
     quit = 1;
     break;
-
+*/
 /*
   case ' ': {
     printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
@@ -1253,10 +1457,15 @@ void GLUTInit(int *argc, char **argv)
   GLUTwindow = glutCreateWindow("OpenGL Viewer");
 
   // Initialize GLUT callback functions 
+  
+  glutIgnoreKeyRepeat(1);
+  
+  
   glutIdleFunc(GLUTIdle);
   glutReshapeFunc(GLUTResize);
   glutDisplayFunc(GLUTRedraw);
   glutKeyboardFunc(GLUTKeyboard);
+  glutKeyboardUpFunc(GLUTKeyboardUp);
   glutSpecialFunc(GLUTSpecial);
   glutMouseFunc(GLUTMouse);
   glutMotionFunc(GLUTMotion);
@@ -1370,19 +1579,39 @@ main(int argc, char **argv)
   // Read scene
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
+  
+  // initialize the player bear
+  double mass = 100;
+  double speed = 20;
+  double height = 5;
+  R3Vector init_velocity = R3Vector(0, 0, 0);
+  player = Bear(mass, speed, height, init_velocity, R3Point(camera.eye));
+  camera.eye.SetY(player.getHeight());
+  
+  R3Shape *shape1 = new R3Shape();
+  R3Shape *shape2 = new R3Shape();
+  
+  shape1->type = R3_SPHERE_SHAPE;
+  shape2->type = R3_SPHERE_SHAPE;
+  
+  R3Sphere sphere1 = R3Sphere(R3Point(3,3,3), 3);
+  R3Sphere sphere2 = R3Sphere(R3Point(-3,3,-3), 3);
+  shape1->sphere = &sphere1;
+  shape2->sphere = &sphere2;
+  
+  // initialize some prey
+  Prey prey1 = Prey(100, 20, R3Point(3,3,3), R3Vector(0,0,0), *shape1);
+  Prey prey2 = Prey(100, 15, R3Point(-3,3,-3), R3Vector(0,0,0), *shape2);
+  prey_list.push_back(prey1);
+  prey_list.push_back(prey2);
 
   // Run GLUT interface
   GLUTMainLoop();
+  
+  delete shape1;
+  delete shape2;
 
   // Return success 
   return 0;
 }
-
-
-
-
-
-
-
-
 

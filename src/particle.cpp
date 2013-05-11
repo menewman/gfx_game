@@ -269,7 +269,7 @@ R3Intersection *ComputeIntersection(R3Segment seg1, R3Segment seg2) {
 // Generating Particles
 ////////////////////////////////////////////////////////////
 
-void GenerateParticles(R3Scene *scene, double current_time, double delta_time)
+void GenerateParticles(R3Scene *scene, double current_time, double delta_time, R3Point playerPos)
 {
   // Generate new particles for every source
   // loop over sources
@@ -288,6 +288,7 @@ void GenerateParticles(R3Scene *scene, double current_time, double delta_time)
              // select a random point on surface of sphere
              R3Sphere *sphere = source->shape->sphere;
              
+             /*
              // z = random[-r, r]
              double z = ((double)rand() / RAND_MAX);
              z = (-1.0*sphere->Radius()) + z * (2*sphere->Radius());
@@ -304,6 +305,11 @@ void GenerateParticles(R3Scene *scene, double current_time, double delta_time)
              double py = sphere->Center().Y() + d*sin(phi);
              double pz = sphere->Center().Z() + z;
              point = R3Point(px, py, pz);
+             */
+             R3Vector toPlayer = playerPos - sphere->Center();
+             toPlayer.Normalize();
+             point = sphere->Center() + sphere->Radius()*toPlayer;
+             
              N = point - sphere->Center();
              N.Normalize();
          }
