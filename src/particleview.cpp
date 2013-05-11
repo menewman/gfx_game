@@ -153,6 +153,42 @@ static double GetTime(void)
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
 ////////////////////////////////////////////////////////////
+void DrawTextBox() 
+{ 
+
+int XSize = glutGet(GLUT_WINDOW_WIDTH);
+int YSize = glutGet(GLUT_WINDOW_HEIGHT);
+glMatrixMode (GL_PROJECTION);
+glLoadIdentity();
+glOrtho (0, XSize, YSize, 0, 0, 1);
+glMatrixMode (GL_MODELVIEW);
+glLoadIdentity();
+
+glDisable(GL_DEPTH_TEST);
+glColor3d(1, 1, 1); 
+glBegin(GL_QUADS); 
+// Top left corner of the screen is (0, 0) 
+	glVertex2f(150, YSize - 7);     // Bottom Right         
+	glVertex2f(7, YSize - 7);       //Bottom Left        
+	glVertex2f(7, YSize - 50);          //Top Left
+	glVertex2f(150, YSize - 50);       //Top Right
+glEnd();
+
+glColor3d(0, 0, 0);
+glRasterPos2i(10, YSize - 25);
+const char *s = "word";
+for (int i = 0; i < 4; i++)
+{
+    char c = *(s + i);
+    glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
+}
+
+
+glEnable(GL_DEPTH_TEST);	
+  
+}
+
+
 
 void DrawShape(R3Shape *shape)
 {
@@ -1004,7 +1040,11 @@ void GLUTRedraw(void)
     DrawScene(scene);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
-
+  
+  glDisable(GL_LIGHTING);
+  DrawTextBox();
+  
+  
   // Save image
   if (save_image) {
     char image_name[256];
@@ -1574,3 +1614,4 @@ main(int argc, char **argv)
   // Return success 
   return 0;
 }
+
