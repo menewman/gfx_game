@@ -1095,24 +1095,12 @@ void GLUTRedraw(void)
   // Load scene lights
   LoadLights(scene);
 
-  // Draw scene camera
-  DrawCamera(scene);
-
-  // Draw scene lights
-  DrawLights(scene);
-
-  // Draw particles
-  DrawParticles(scene, current_time - time_lost_taking_videos, delta_time);
-
   // Draw particle sources 
   DrawParticleSources(scene, delta_time);
 
   // Draw particle sinks 
   DrawParticleSinks(scene);
 
-  // Draw particle springs
-  DrawParticleSprings(scene);
-  
   // Draw prey
   DrawPrey(scene, delta_time);
 
@@ -1145,12 +1133,6 @@ void GLUTRedraw(void)
 
   // Load scene lights
   LoadLights(scene);
-
-  // Draw scene camera
-  DrawCamera(scene);
-
-  // Draw scene lights
-  DrawLights(scene);
 
   // Draw particles
   DrawParticles(scene, current_time - time_lost_taking_videos, delta_time);
