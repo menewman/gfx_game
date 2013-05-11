@@ -361,7 +361,7 @@ void LoadMinimapCamera(void)
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(-75, 75, -75, 75, 0.01, 1000);
+  glOrtho(-100, 100, -100, 100, 0.01, 1000);
 
   // Set camera transformation
   R3Vector t = -(R3negy_vector);
