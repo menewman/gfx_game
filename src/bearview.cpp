@@ -6,10 +6,10 @@
 // INCLUDE FILES
 ////////////////////////////////////////////////////////////
 
+#include "cos426_opengl.h"
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "particle.h"
-#include "cos426_opengl.h"
 #include "Bear.h"
 #include "Prey.h"
 #define PI 3.14159265
@@ -60,6 +60,7 @@ static int move_right = 0;
 static int move_jump = 0;
 static int turn_left = 0;
 static int turn_right = 0;
+static int menu = 0;
 
 
 // GLUT variables 
@@ -70,6 +71,15 @@ static int GLUTwindow_width = 512;
 static int GLUTmouse[2] = { 0, 0 };
 static int GLUTbutton[3] = { 0, 0, 0 };
 static int GLUTmodifiers = 0;
+
+
+// Framebuffer parameters
+
+unsigned int fbo; // The frame buffer object  
+unsigned int fbo_depth; // The depth buffer for the frame buffer object  
+unsigned int fbo_texture; // The texture object to write our frame buffer object to
+int window_width = 500; // The width of our window  
+int window_height = 500; // The height of our window
 
 
 
@@ -153,6 +163,56 @@ static double GetTime(void)
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
 ////////////////////////////////////////////////////////////
+
+void DrawTextBox() 
+{ 
+    int XSize = glutGet(GLUT_WINDOW_WIDTH);
+    int YSize = glutGet(GLUT_WINDOW_HEIGHT);
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, XSize, YSize, 0, 0, 1);
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+
+    glDisable(GL_DEPTH_TEST);
+    glColor3d(1, 1, 1); 
+    glBegin(GL_QUADS); 
+    // Top left corner of the screen is (0, 0) 
+    glVertex2f(150, YSize - 7);     // Bottom Right         
+    glVertex2f(7, YSize - 7);       //Bottom Left        
+    glVertex2f(7, YSize - 50);          //Top Left
+    glVertex2f(150, YSize - 50);       //Top Right
+    glEnd();
+
+    glColor3d(0, 0, 0);
+    glRasterPos2i(10, YSize - 25);
+    const char *s = "word";
+    for (int i = 0; i < 4; i++)
+    {
+        char c = *(s + i);
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
+    }
+
+    if (menu == 1) {
+        glColor3d(1, 1, 1); 
+        glBegin(GL_QUADS);  
+        glVertex2f(150, YSize - 50);     // Bottom Right         
+        glVertex2f(7, YSize - 50);       //Bottom Left        
+        glVertex2f(7, YSize - 100);          //Top Left
+        glVertex2f(150, YSize - 100);       //Top Right
+        glEnd(); 
+
+        glLineWidth(4);
+        glColor3d(0, 0, 0);
+        glBegin(GL_LINES);
+        glVertex2f(150, YSize - 50);
+        glVertex2f(7, YSize - 50);	
+        glEnd();
+    }
+
+    glEnable(GL_DEPTH_TEST);	
+}
+
 
 void DrawShape(R3Shape *shape)
 {
@@ -293,6 +353,25 @@ void LoadCamera(R3Camera *camera)
   glLoadIdentity();
   glMultMatrixd(camera_matrix);
   glTranslated(-(camera->eye[0]), -(camera->eye[1]), -(camera->eye[2]));
+}
+
+
+void LoadMinimapCamera(void)
+{
+  // Set projection transformation
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-75, 75, -75, 75, 0.01, 1000);
+
+  // Set camera transformation
+  R3Vector t = -(R3negy_vector);
+  R3Vector& u = camera.towards;
+  R3Vector& r = camera.right;
+  GLdouble camera_matrix[16] = { r[0], u[0], t[0], 0, r[1], u[1], t[1], 0, r[2], u[2], t[2], 0, 0, 0, 0, 1 };
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glMultMatrixd(camera_matrix);
+  glTranslated(-(player.getPosition().X()), -(player.getPosition().Y() + 300), -(player.getPosition().Z()));
 }
 
 
@@ -758,6 +837,43 @@ void DrawParticleSprings(R3Scene *scene)
 }
 
 
+void DrawMinimap(void)
+{
+    int XSize = glutGet(GLUT_WINDOW_WIDTH);
+    int YSize = glutGet(GLUT_WINDOW_HEIGHT);
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, XSize, YSize, 0, 0, 1);
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+
+    glColor3d(1, 1, 1); 
+
+    glBindTexture(GL_TEXTURE_2D, fbo_texture); // Bind our frame buffer texture
+
+    glBegin(GL_QUADS); 
+    // Top left corner of the screen is (0, 0) 
+    glTexCoord2f(0.0f, 1.0f); 
+    glVertex2f(XSize - 155, 5);          //Top Left
+
+    glTexCoord2f(1.0f, 1.0f); 
+    glVertex2f(XSize - 5, 5);       //Top Right
+
+    glTexCoord2f(1.0f, 0.0f); 
+    glVertex2f(XSize - 5, 155);     // Bottom Right
+
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(XSize - 155, 155);       //Bottom Left
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind
+
+    glEnable(GL_DEPTH_TEST);
+}
+
 
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
@@ -959,7 +1075,68 @@ void GLUTRedraw(void)
   else if (newPosition.Z() < -BOUND)
       newPosition.SetZ(-BOUND);
   player.setPosition(newPosition);
+
+
+
+  /* Drawing minimap */
+
+
+  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Render to texture
+
+  // Clear the background of our window
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+
+  //Clear the colour buffer (more buffers later on)
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+
+  // Load minimap camera
+  LoadMinimapCamera();
+
+  // Load scene lights
+  LoadLights(scene);
+
+  // Draw scene camera
+  DrawCamera(scene);
+
+  // Draw scene lights
+  DrawLights(scene);
+
+  // Draw particles
+  DrawParticles(scene, current_time - time_lost_taking_videos, delta_time);
+
+  // Draw particle sources 
+  DrawParticleSources(scene, delta_time);
+
+  // Draw particle sinks 
+  DrawParticleSinks(scene);
+
+  // Draw particle springs
+  DrawParticleSprings(scene);
   
+  // Draw prey
+  DrawPrey(scene, delta_time);
+
+  // Draw scene surfaces
+  if (show_faces) {
+    glEnable(GL_LIGHTING);
+    DrawScene(scene);
+  }
+
+  // Draw scene edges
+  if (show_edges) {
+    glDisable(GL_LIGHTING);
+    glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    DrawScene(scene);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
+
+  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind
+
+  /* End drawing minimap */
+
+
+
   // set the camera to the player's position
   camera.eye = player.getPosition();
 
@@ -1004,6 +1181,15 @@ void GLUTRedraw(void)
     DrawScene(scene);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
+
+
+  glDisable(GL_LIGHTING);
+
+  // Display on-screen menu
+  DrawTextBox();
+
+  // Display minimap
+  DrawMinimap();
 
   // Save image
   if (save_image) {
@@ -1123,6 +1309,12 @@ void GLUTMouse(int button, int state, int x, int y)
   // Process mouse button event
   if (state == GLUT_DOWN) {
     if (button == GLUT_LEFT_BUTTON) {
+        if (x <= 150 && x >= 7 && y <= 50 && y >= 7) {
+            menu = 1;
+        }
+        else {
+            menu = 0;
+        }
     }
     else if (button == GLUT_MIDDLE_BUTTON) {
     }
@@ -1407,6 +1599,71 @@ void GLUTCreateMenu(void)
 
 
 
+
+/***** Framebuffer Initialization Functions *****/
+
+
+void initFrameBufferDepthBuffer(void) {  
+    glGenRenderbuffersEXT(1, &fbo_depth); // Generate one render buffer and store the ID in fbo_depth  
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo_depth); // Bind the fbo_depth render buffer  
+
+    // Set the render buffer storage to be a depth component, with a width and height of the window
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, window_width, window_height); 
+
+    // Set the render buffer of this buffer to the depth buffer
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo_depth);
+
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0); // Unbind the render buffer  
+}  
+
+void initFrameBufferTexture(void) {  
+    glGenTextures(1, &fbo_texture); // Generate one texture  
+    glBindTexture(GL_TEXTURE_2D, fbo_texture); // Bind the texture fbo_texture  
+
+    // Create a standard texture with the width and height of our window  
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_width, window_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); 
+
+    // Setup the basic texture parameters  
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  
+
+    // Unbind the texture  
+    glBindTexture(GL_TEXTURE_2D, 0);  
+}  
+
+void initFrameBuffer(void) {  
+    initFrameBufferDepthBuffer(); // Initialize our frame buffer depth buffer  
+
+    initFrameBufferTexture(); // Initialize our frame buffer texture  
+
+    glGenFramebuffersEXT(1, &fbo); // Generate one frame buffer and store the ID in fbo  
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Bind our frame buffer  
+
+    // Attach the texture fbo_texture to the color buffer in our frame buffer  
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, fbo_texture, 0); 
+
+    // Attach the depth buffer fbo_depth to our frame buffer  
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo_depth); 
+
+    GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT); // Check that status of our generated frame buffer  
+
+    if (status != GL_FRAMEBUFFER_COMPLETE_EXT) // If the frame buffer does not report back as complete  
+    {  
+        exit(0); // Exit the application  
+    }  
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind our frame buffer  
+}
+
+
+/***** End Framebuffer Initialization Functions *****/
+
+
+
+
+
 void GLUTInit(int *argc, char **argv)
 {
   // Open window 
@@ -1438,6 +1695,10 @@ void GLUTInit(int *argc, char **argv)
  
   // Create menus
   GLUTCreateMenu();
+
+  // Initialize glew
+  glewInit();
+  initFrameBuffer();
 }
 
 
