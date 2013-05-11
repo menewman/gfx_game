@@ -12,6 +12,8 @@
 #include "particle.h"
 #include "Bear.h"
 #include "Prey.h"
+#include "Hunter.h"
+#define R3Rgb R2Pixel
 #define PI 3.14159265
 #define TOLERANCE 0.0001
 #define BOUND 500
@@ -41,6 +43,7 @@ static R3Scene *scene = NULL;
 static R3Camera camera;
 static Bear player;
 static vector<Prey> prey_list;
+static vector<Hunter> hunter_list;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -643,52 +646,8 @@ void DrawParticles(R3Scene *scene, double current_time, double delta_time)
   
 }
 
-// move particle sources randomly around
-void UpdateParticleSources(R3Scene *scene, double delta_time) {
-    double hunter_speed = 5;
-    
-    // iterate through particle sources, do a random walk in xz-plane
-    for (int i = 0; i < scene->NParticleSources(); i++) {
-        R3ParticleSource *source = scene->ParticleSource(i);
-        if (source->shape->type == R3_SPHERE_SHAPE) {            
-            R3Vector toPlayer = player.getPosition() - source->shape->sphere->Center();
-            toPlayer.SetY(0);
-            toPlayer.Normalize();
-            R3Point newCenter = source->shape->sphere->Center() + toPlayer*delta_time*hunter_speed;
-            
-            // keep from leaving map
-            if (newCenter.X() > BOUND)
-              newCenter.SetX(BOUND);
-            else if (newCenter.X() < -BOUND)
-              newCenter.SetX(-BOUND);
-            if (newCenter.Z() > BOUND)
-              newCenter.SetZ(BOUND);
-            else if (newCenter.Z() < -BOUND)
-              newCenter.SetZ(-BOUND);
-              
-            source->shape->sphere->Reposition(newCenter);
-        }
-        /*else if (source->shape->type == R3_BOX_SHAPE) {
-        }
-        else if (source->shape->type == R3_CYLINDER_SHAPE) {
-        }
-        else if (source->shape->type == R3_CONE_SHAPE) {
-        }
-        else if (source->shape->type == R3_MESH_SHAPE) {
-        }
-        else if (source->shape->type == R3_SEGMENT_SHAPE) {
-        }
-        else if (source->shape->type == R3_CIRCLE_SHAPE) {
-        }*/
-    }
-}
-
-
 void DrawParticleSources(R3Scene *scene, double delta_time)
 {
-  // update the particle sources
-  UpdateParticleSources(scene, delta_time);
-
   // Check if should draw particle sources
   if (!show_particle_sources_and_sinks) return;
 
@@ -700,21 +659,9 @@ void DrawParticleSources(R3Scene *scene, double delta_time)
   static R3Material source_material;
   if (source_material.id != 33) {
     // green
-    /*source_material.ka.Reset(0.2,0.2,0.2,1);
+    source_material.ka.Reset(0.2,0.2,0.2,1);
     source_material.kd.Reset(0,1,0,1);
     source_material.ks.Reset(0,1,0,1);
-    source_material.kt.Reset(0,0,0,1);
-    source_material.emission.Reset(0,0,0,1);
-    source_material.shininess = 1;
-    source_material.indexofrefraction = 1;
-    source_material.texture = NULL;
-    source_material.texture_index = -1;
-    source_material.id = 33;*/
-    
-    // red
-    source_material.ka.Reset(0.2,0.2,0.2,1);
-    source_material.kd.Reset(1,0,0,1);
-    source_material.ks.Reset(1,0,0,1);
     source_material.kt.Reset(0,0,0,1);
     source_material.emission.Reset(0,0,0,1);
     source_material.shininess = 1;
@@ -735,8 +682,6 @@ void DrawParticleSources(R3Scene *scene, double delta_time)
   // Clean up
   if (!lighting) glDisable(GL_LIGHTING);
 }
-
-
 
 void DrawParticleSinks(R3Scene *scene)
 {
@@ -805,7 +750,46 @@ void DrawPrey(R3Scene *scene, double delta_time)
   glEnable(GL_LIGHTING);
   LoadMaterial(&prey_material);
   for (unsigned int i = 0; i < prey_list.size(); i++)
-    DrawShape(&prey_list[i].shape);
+      DrawShape(&prey_list[i].shape);
+
+  // Clean up
+  if (!lighting) glDisable(GL_LIGHTING);
+}
+
+void DrawHunters(R3Scene *scene, double delta_time, double current_time)
+{
+  // update the hunter
+  for (unsigned int i = 0; i < hunter_list.size(); i++) {
+      hunter_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
+      hunter_list[i].shoot(scene, current_time, delta_time, player.getPosition());
+  }
+
+  // Setup
+  GLboolean lighting = glIsEnabled(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
+
+  // Define hunter material
+  static R3Material hunter_material;
+  if (hunter_material.id != 33) {
+      // red
+      hunter_material.ka.Reset(0.2,0.2,0.2,1);
+      hunter_material.kd.Reset(1,0,0,1);
+      hunter_material.ks.Reset(1,0,0,1);
+      hunter_material.kt.Reset(0,0,0,1);
+      hunter_material.emission.Reset(0,0,0,1);
+      hunter_material.shininess = 1;
+      hunter_material.indexofrefraction = 1;
+      hunter_material.texture = NULL;
+      hunter_material.texture_index = -1;
+      hunter_material.id = 33;
+  }
+
+  // Draw all particle sources
+  glEnable(GL_LIGHTING);
+  LoadMaterial(&hunter_material);
+  for (unsigned int i = 0; i < hunter_list.size(); i++) {
+      DrawShape(hunter_list[i].source.shape);
+  }
 
   // Clean up
   if (!lighting) glDisable(GL_LIGHTING);
@@ -1076,10 +1060,7 @@ void GLUTRedraw(void)
       newPosition.SetZ(-BOUND);
   player.setPosition(newPosition);
 
-
-
   /* Drawing minimap */
-
 
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Render to texture
 
@@ -1103,6 +1084,9 @@ void GLUTRedraw(void)
 
   // Draw prey
   DrawPrey(scene, delta_time);
+  
+  // Draw hunters
+  DrawHunters(scene, delta_time, current_time);
 
   // Draw scene surfaces
   if (show_faces) {
@@ -1148,6 +1132,9 @@ void GLUTRedraw(void)
   
   // Draw prey
   DrawPrey(scene, delta_time);
+  
+  // Draw hunters
+  DrawHunters(scene, delta_time, current_time);
 
   // Draw scene surfaces
   if (show_faces) {
@@ -1219,10 +1206,7 @@ void GLUTRedraw(void)
 	previous_time = current_time;
   // Swap buffers 
   glutSwapBuffers();
-  
-  
 }    
-
 
 
 void GLUTMotion(int x, int y)
@@ -1791,6 +1775,7 @@ main(int argc, char **argv)
   player = Bear(mass, speed, height, init_velocity, R3Point(camera.eye));
   camera.eye.SetY(player.getHeight());
   
+  // initialize prey shapes
   R3Shape *shape1 = new R3Shape();
   R3Shape *shape2 = new R3Shape();
   
@@ -1807,12 +1792,50 @@ main(int argc, char **argv)
   Prey prey2 = Prey(100, 15, R3Point(-3,3,-3), R3Vector(0,0,0), *shape2);
   prey_list.push_back(prey1);
   prey_list.push_back(prey2);
+  
+  // initialize hunter particle source
+  R3ParticleSource *hsource = new R3ParticleSource();
+  R3Shape *hshape = new R3Shape();
+  hshape->type = R3_SPHERE_SHAPE;
+  R3Sphere hsphere = R3Sphere(R3Point(10,3,10), 3);
+  hshape->sphere = &hsphere;
+  
+  hsource->shape = hshape;
+  hsource->rate = 0.5;
+  hsource->velocity = 100;
+  hsource->angle_cutoff = 0.05;
+  hsource->mass = 0.01;
+  hsource->fixed = false;
+  hsource->drag = 0;
+  hsource->elasticity = 0;
+  hsource->lifetime = 5;
+  hsource->todo = 0;
+  
+  R3Material *bullet_material = new R3Material();
+  bullet_material->ka = R3Rgb(0, 0, 0, 1);
+  bullet_material->kd = R3Rgb(0, 0, 0, 1);
+  bullet_material->ks = R3Rgb(0, 0, 0, 1);
+  bullet_material->kt = R3Rgb(0.0, 0.0, 0.0, 1);
+  bullet_material->emission = R3Rgb(0, 0, 0, 1);
+  bullet_material->shininess = 10;
+  bullet_material->indexofrefraction = 1;
+  bullet_material->texture = NULL;
+  bullet_material->id = 0;
+  
+  hsource->material = bullet_material;
+  
+  // initialize a hunter
+  Hunter hunter = Hunter(100, 5, R3Point(10, 3, 10), R3Vector(0,0,0), *hsource);
+  hunter_list.push_back(hunter);
 
   // Run GLUT interface
   GLUTMainLoop();
   
   delete shape1;
   delete shape2;
+  delete hshape;
+  delete hsource;
+  delete bullet_material;
 
   // Return success 
   return 0;

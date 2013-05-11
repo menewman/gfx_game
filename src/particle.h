@@ -27,6 +27,7 @@ struct R3Intersection {
 
 // Particle system functions
 double RandomNumber(void);
+R3Vector getNormal(R3Vector vector);
 R3Intersection *ComputeIntersection(R3Ray ray, R3Sphere sphere);
 R3Intersection *ComputeIntersection(R3Segment segment, R3Sphere sphere);
 R3Intersection *ComputeIntersection(R3Ray ray, R3Circle circle);

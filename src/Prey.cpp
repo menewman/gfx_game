@@ -18,12 +18,6 @@ Prey(double mass, double speed, R3Point position, R3Vector velocity, R3Shape sha
 {}
 
 void Prey::
-setPosition(const R3Point& newPosition)
-{
-    position = newPosition;
-}
-
-void Prey::
 setVelocity(const R3Vector& newVelocity)
 {
     velocity = newVelocity;

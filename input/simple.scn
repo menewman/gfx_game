@@ -29,10 +29,10 @@ box    9    -500 -0.5 -500    500 0 500
 dir_light  0.950 0.950 0.824  -0.3 -0.7 0
 
 # hunter sphere
-particle_source
-  0.1 0 0 0 5 4
-  0.5 100 0.05
-  sphere 10 3 10 2
+#particle_source
+  #0.1 0 0 0 5 4
+  #0.5 100 0.05
+  #sphere 10 3 10 2
 
 cylinder 7    0 10 0    0.5 20
 sphere   8    0 20 0    5

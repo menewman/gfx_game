@@ -288,7 +288,6 @@ void GenerateParticles(R3Scene *scene, double current_time, double delta_time, R
              // select a random point on surface of sphere
              R3Sphere *sphere = source->shape->sphere;
              
-             /*
              // z = random[-r, r]
              double z = ((double)rand() / RAND_MAX);
              z = (-1.0*sphere->Radius()) + z * (2*sphere->Radius());
@@ -305,10 +304,6 @@ void GenerateParticles(R3Scene *scene, double current_time, double delta_time, R
              double py = sphere->Center().Y() + d*sin(phi);
              double pz = sphere->Center().Z() + z;
              point = R3Point(px, py, pz);
-             */
-             R3Vector toPlayer = playerPos - sphere->Center();
-             toPlayer.Normalize();
-             point = sphere->Center() + sphere->Radius()*toPlayer;
              
              N = point - sphere->Center();
              N.Normalize();
