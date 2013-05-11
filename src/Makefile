@@ -30,9 +30,9 @@ ifneq (,$(findstring Darwin,$(UNAME)))
 	GLLIBS = -framework GLUT -framework OpenGL
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
-	GLLIBS = -lglut32 -lglu32 -lopengl32
+	GLLIBS = -lglut32 -lglu32 -lopengl32 -lglew32
   else
-	GLLIBS = -lglut -lGLU -lGL
+	GLLIBS = -lglut -lGLU -lGL -lGLEW
   endif
 endif
 
