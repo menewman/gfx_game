@@ -6,7 +6,7 @@
 # List of source files
 #
 
-SRCS=particleview.cpp particle.cpp R3Scene.cpp Bear.cpp Prey.cpp
+SRCS=bearview.cpp particle.cpp R3Scene.cpp Bear.cpp Prey.cpp
 OBJS=$(SRCS:.cpp=.o)
 
 #
@@ -47,9 +47,9 @@ endif
 # Make targets
 #
 
-all: particleview
+all: bearview
 
-particleview: $(OBJS) $(LIBS)
+bearview: $(OBJS) $(LIBS)
 		rm -f $@
 	    $(CXX) $(CXXFLAGS) $^ -lm -o $@ $(GLLIBS)
 
@@ -63,7 +63,7 @@ jpeg/libjpeg.a:
 	    $(MAKE) -C jpeg
 
 clean:
-	    rm -f *.o particleview
+	    rm -f *.o bearview
 	    rm -f *~
 		$(MAKE) -C R3 clean
 		$(MAKE) -C R2 clean
