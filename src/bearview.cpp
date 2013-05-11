@@ -634,9 +634,6 @@ void DrawScene(R3Scene *scene)
 
 void DrawParticles(R3Scene *scene, double current_time, double delta_time)
 {
-  // Update particles
-  UpdateParticles(scene, current_time, delta_time, integration_type, 1);
-
   // Generate new particles
   GenerateParticles(scene, current_time , delta_time, player.getPosition());
 
@@ -722,10 +719,6 @@ void DrawParticleSinks(R3Scene *scene)
 
 void DrawPrey(R3Scene *scene, double delta_time)
 {
-  // update the prey
-  for (unsigned int i = 0; i < prey_list.size(); i++)
-    prey_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
-
   // Setup
   GLboolean lighting = glIsEnabled(GL_LIGHTING);
   glEnable(GL_LIGHTING);
@@ -758,12 +751,6 @@ void DrawPrey(R3Scene *scene, double delta_time)
 
 void DrawHunters(R3Scene *scene, double delta_time, double current_time)
 {
-  // update the hunter
-  for (unsigned int i = 0; i < hunter_list.size(); i++) {
-      hunter_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
-      hunter_list[i].shoot(scene, current_time, delta_time, player.getPosition());
-  }
-
   // Setup
   GLboolean lighting = glIsEnabled(GL_LIGHTING);
   glEnable(GL_LIGHTING);
@@ -1118,7 +1105,8 @@ void GLUTRedraw(void)
   // Load scene lights
   LoadLights(scene);
 
-  // Draw particles
+  // Update and draw particles
+  UpdateParticles(scene, current_time, delta_time, integration_type, 1);
   DrawParticles(scene, current_time - time_lost_taking_videos, delta_time);
 
   // Draw particle sources 
@@ -1130,10 +1118,16 @@ void GLUTRedraw(void)
   // Draw particle springs
   DrawParticleSprings(scene);
   
-  // Draw prey
+  // Update and draw prey
+  for (unsigned int i = 0; i < prey_list.size(); i++)
+    prey_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
   DrawPrey(scene, delta_time);
   
-  // Draw hunters
+  // Update and draw hunters
+  for (unsigned int i = 0; i < hunter_list.size(); i++) {
+      hunter_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
+      hunter_list[i].shoot(scene, current_time, delta_time, player.getPosition());
+  }
   DrawHunters(scene, delta_time, current_time);
 
   // Draw scene surfaces
