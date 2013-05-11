@@ -10,12 +10,20 @@ material  0 0 0  0 0.2 0           0 0.2 0          0 0 0  0 0 0  10 1 0
 material  0 0 0  0 0 0       0 0 0      0 0 0  0 0 0  10 1 0
 # bright green
 material  0 0 0  0 0.8 0           0 0.8 0          0 0 0  0 0 0  10 1 0
+# volcano ground texture
+material   0 0 0   0.5 0.5 0.5   0.5 0.5 0.5   0 0 0   0 0 0   10 1 volcano.jpg
+# tree bark texture
+material   0 0 0   0.5 0.5 0.5   0.5 0.5 0.5   0 0 0   0 0 0   10 1 bark.jpg
+# leaves texture
+material   0 0 0   0.5 0.5 0.5   0.5 0.5 0.5   0 0 0   0 0 0   10 1 leaves.jpg
+# grass texture
+material   0 0 0   0.5 0.5 0.5   0.5 0.5 0.5   0 0 0   0 0 0   10 1 grass.jpg
 
 # sky
 background 0.529 0.808 0.980
 
 # ground
-box    5    -500 -0.5 -500    500 0 500
+box    9    -500 -0.5 -500    500 0 500
 
 # sunlight
 dir_light  0.950 0.950 0.824  -0.3 -0.7 0
@@ -26,70 +34,70 @@ particle_source
   0.5 100 0.05
   sphere 10 3 10 2
 
-cylinder 0    0 10 0    0.5 20
-sphere   3    0 20 0    5
-cylinder 1    100 10 100    0.5 20
-sphere   3    100 20 100    6
-cylinder 2    -100 10 100    0.5 20
-sphere   3    -100 20 100    7
-cylinder 0    100 10 -100    0.5 20
-sphere   3    100 20 -100    8
-cylinder 1    -100 10 -100    0.5 20
-sphere   3    -100 20 -100    9
-cylinder 2    0 10 100    0.5 20
-sphere   3    0 20 100    6
-cylinder 0    0 10 -100    0.5 20
-sphere   3    0 20 -100    7
-cylinder 1    100 10 0    0.5 20
-sphere   3    100 20 0    8
-cylinder 2    -100 10 0    0.5 20
-sphere   3    -100 20 0    9
+cylinder 7    0 10 0    0.5 20
+sphere   8    0 20 0    5
+cylinder 7    100 10 100    0.5 20
+sphere   8    100 20 100    6
+cylinder 7    -100 10 100    0.5 20
+sphere   8    -100 20 100    7
+cylinder 7    100 10 -100    0.5 20
+sphere   8    100 20 -100    8
+cylinder 7    -100 10 -100    0.5 20
+sphere   8    -100 20 -100    9
+cylinder 7    0 10 100    0.5 20
+sphere   8    0 20 100    6
+cylinder 7    0 10 -100    0.5 20
+sphere   8    0 20 -100    7
+cylinder 7   100 10 0    0.5 20
+sphere   8    100 20 0    8
+cylinder 7    -100 10 0    0.5 20
+sphere   8    -100 20 0    9
 
-cylinder 0    50 10 50    0.5 20
-sphere   3    50 20 50    5
-cylinder 1    -50 10 50    0.5 20
-sphere   3    -50 20 50    6
-cylinder 2    50 10 -50    0.5 20
-sphere   3    50 20 -50    7
-cylinder 0    -50 10 -50    0.5 20
-sphere   3    -50 20 -50    8
-cylinder 1    0 10 50    0.5 20
-sphere   3    0 20 50    9
-cylinder 2    0 10 -50    0.5 20
-sphere   3    0 20 -50    10
-cylinder 0    50 10 0    0.5 20
-sphere   3    50 20 0    6
-cylinder 1    -50 10 0    0.5 20
-sphere   3    -50 20 0    7
-cylinder 2    100 10 100    0.5 20
-sphere   3    100 20 100    8
-cylinder 0    -100 10 100    0.5 20
-sphere   3    -100 20 100    9
-cylinder 1    100 10 -100    0.5 20
-sphere   3    100 20 -100    10
-cylinder 2    -100 10 -100    0.5 20
-sphere   3    -100 20 -100    11
-cylinder 0    0 10 100    0.5 20
-sphere   3    0 20 100    12
-cylinder 1    0 10 -100    0.5 20
-sphere   3    0 20 -100    9
-cylinder 2    100 10 0    0.5 20
-sphere   3    100 20 0    8
-cylinder 0    -100 10 0    0.5 20
-sphere   3    -100 20 0    7
-cylinder 1    50 10 100    0.5 20
-sphere   3    50 20 100    6
-cylinder 2    -50 10 100    0.5 20
-sphere   3    -50 20 100    5
-cylinder 0    100 10 50    0.5 20
-sphere   3    100 20 50    4
-cylinder 1    -100 10 50    0.5 20
-sphere   3    -100 20 50    8
-cylinder 2    50 10 -100    0.5 20
-sphere   3    50 20 -100    7
-cylinder 0    -50 10 -100    0.5 20
-sphere   3    -50 20 -100    10
-cylinder 1    100 10 -50    0.5 20
-sphere   3    100 20 -50    8
-cylinder 2    -100 10 -50    0.5 20
-sphere   3    -100 20 -50    5
+cylinder 7    50 10 50    0.5 20
+sphere   8    50 20 50    5
+cylinder 7    -50 10 50    0.5 20
+sphere   8    -50 20 50    6
+cylinder 7    50 10 -50    0.5 20
+sphere   8    50 20 -50    7
+cylinder 7    -50 10 -50    0.5 20
+sphere   8    -50 20 -50    8
+cylinder 7    0 10 50    0.5 20
+sphere   8    0 20 50    9
+cylinder 7    0 10 -50    0.5 20
+sphere   8    0 20 -50    10
+cylinder 7    50 10 0    0.5 20
+sphere   8    50 20 0    6
+cylinder 7    -50 10 0    0.5 20
+sphere   8    -50 20 0    7
+cylinder 7    100 10 100    0.5 20
+sphere   8    100 20 100    8
+cylinder 7    -100 10 100    0.5 20
+sphere   8    -100 20 100    9
+cylinder 7    100 10 -100    0.5 20
+sphere   8    100 20 -100    10
+cylinder 7    -100 10 -100    0.5 20
+sphere   8    -100 20 -100    11
+cylinder 7    0 10 100    0.5 20
+sphere   8    0 20 100    12
+cylinder 7    0 10 -100    0.5 20
+sphere   8    0 20 -100    9
+cylinder 7    100 10 0    0.5 20
+sphere   8    100 20 0    8
+cylinder 7    -100 10 0    0.5 20
+sphere   8    -100 20 0    7
+cylinder 7    50 10 100    0.5 20
+sphere   8    50 20 100    6
+cylinder 7    -50 10 100    0.5 20
+sphere   8    -50 20 100    5
+cylinder 7    100 10 50    0.5 20
+sphere   8    100 20 50    4
+cylinder 7    -100 10 50    0.5 20
+sphere   8    -100 20 50    8
+cylinder 7    50 10 -100    0.5 20
+sphere   8    50 20 -100    7
+cylinder 7    -50 10 -100    0.5 20
+sphere   8    -50 20 -100    10
+cylinder 7    100 10 -50    0.5 20
+sphere   8    100 20 -50    8
+cylinder 7    -100 10 -50    0.5 20
+sphere   8    -100 20 -50    5
