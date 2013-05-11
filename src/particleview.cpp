@@ -60,6 +60,7 @@ static int move_right = 0;
 static int move_jump = 0;
 static int turn_left = 0;
 static int turn_right = 0;
+static int menu = 0;
 
 
 // GLUT variables 
@@ -181,6 +182,23 @@ for (int i = 0; i < 4; i++)
 {
     char c = *(s + i);
     glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
+}
+
+if (menu == 1) {
+glColor3d(1, 1, 1); 
+glBegin(GL_QUADS);  
+	glVertex2f(150, YSize - 50);     // Bottom Right         
+	glVertex2f(7, YSize - 50);       //Bottom Left        
+	glVertex2f(7, YSize - 100);          //Top Left
+	glVertex2f(150, YSize - 100);       //Top Right
+glEnd(); 
+
+glLineWidth(4);
+glColor3d(0, 0, 0);
+glBegin(GL_LINES);
+	glVertex2f(150, YSize - 50);
+	glVertex2f(7, YSize - 50);	
+glEnd();
 }
 
 
@@ -1163,6 +1181,12 @@ void GLUTMouse(int button, int state, int x, int y)
   // Process mouse button event
   if (state == GLUT_DOWN) {
     if (button == GLUT_LEFT_BUTTON) {
+		if (x <= 150 && x >= 7 && y <= 50 && y >= 7) {
+		menu = 1;
+		}
+		else {
+		menu = 0;
+		}
     }
     else if (button == GLUT_MIDDLE_BUTTON) {
     }
