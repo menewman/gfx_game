@@ -25,13 +25,7 @@ public:
     R3Point position;
     double health;
     double stamina;
-/*
-private:
-    double mass;
-    double speed;
-    double height;
-    R3Vector velocity;
-    R3Point position;*/
+    R3Box bbox;
 };
 
 // Inline functions

@@ -1461,11 +1461,13 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     show_edges = !show_edges;
     break;
 */
+/*
   case 'F':
   case 'f':
     show_faces = !show_faces;
     break;
-
+*/
+/*
   case 'L':
   case 'l':
     show_lights = !show_lights;
@@ -1480,7 +1482,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   case 'r':
     show_particle_springs = !show_particle_springs;
     break;
-
+*/
 /*
   case 'S':
   case 's':

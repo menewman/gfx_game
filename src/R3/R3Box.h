@@ -57,6 +57,7 @@ class R3Box {
   void Intersect(const R3Box& box);
   void Transform(const R3Matrix& matrix);
   void Reset(const R3Point& min, const R3Point& max);
+  bool intersects(const R3Box& box);
 	
   // Relationship functions/operators
   bool operator==(const R3Box& box) const;
