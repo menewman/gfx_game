@@ -2,6 +2,7 @@
 
 #include "R3/R3.h"
 #include "Bear.h"
+#define TOLERANCE 0.00001
 
 Bear::
 Bear(void)
@@ -16,7 +17,8 @@ Bear(double mass, double speed, double height, R3Vector velocity, R3Point positi
       velocity(velocity),
       position(position),
       health(100),
-      stamina(100)
+      stamina(100),
+      bbox(R3Box(position.X()-1.5, 0, position.Z()-1.5, position.X()+1.5, height+1, position.Z()+1.5))
 {
 }
 
@@ -35,6 +37,8 @@ setPosition(const R3Point& newPosition)
 void Bear::
 updatePosition(double delta_time)
 {
+    if (position.Y() - height < TOLERANCE)
+        return;
     R3Vector grav = R3Vector(0,-15,0);
     R3Vector f_grav = mass * grav;
     R3Vector accel = f_grav / mass;

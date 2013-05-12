@@ -97,6 +97,7 @@ struct R3Particle {
   double elasticity;
   double lifetime;
   double birthday;
+  bool bullet;
   R3Material *material;
   vector<struct R3ParticleSpring *> springs;
 };

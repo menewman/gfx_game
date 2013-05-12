@@ -295,6 +295,7 @@ Read(const char *filename, R3Node *node)
       particle->lifetime = lifetime;
       particle->material = material;
       particle->birthday = 0;
+      particle->bullet = false;
 
       // Add particle to scene
       particles.push_back(particle);

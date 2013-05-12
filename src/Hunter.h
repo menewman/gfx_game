@@ -25,6 +25,7 @@ public:
     R3Vector velocity;
     R3ParticleSource source;
     R3Shape icon;
+    R3Box bbox;
 };
 
 // Inline functions
