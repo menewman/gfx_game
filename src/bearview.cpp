@@ -717,7 +717,7 @@ void DrawParticleSinks(R3Scene *scene)
 }
 
 
-void DrawPrey(R3Scene *scene, double delta_time)
+void DrawPrey(void)
 {
   // Setup
   GLboolean lighting = glIsEnabled(GL_LIGHTING);
@@ -739,7 +739,7 @@ void DrawPrey(R3Scene *scene, double delta_time)
     prey_material.id = 33;
   }
 
-  // Draw all particle sources
+  // Draw all prey
   glEnable(GL_LIGHTING);
   LoadMaterial(&prey_material);
   for (unsigned int i = 0; i < prey_list.size(); i++)
@@ -749,7 +749,7 @@ void DrawPrey(R3Scene *scene, double delta_time)
   if (!lighting) glDisable(GL_LIGHTING);
 }
 
-void DrawHunters(R3Scene *scene, double delta_time, double current_time)
+void DrawHunters(void)
 {
   // Setup
   GLboolean lighting = glIsEnabled(GL_LIGHTING);
@@ -805,6 +805,110 @@ void DrawParticleSprings(R3Scene *scene)
 
   // Clean up
   if (lighting) glEnable(GL_LIGHTING);
+}
+
+
+void DrawMinimapPrey(void)
+{
+  // Setup
+  GLboolean lighting = glIsEnabled(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
+
+  // Define prey material
+  static R3Material prey_material;
+  if (prey_material.id != 33) {
+    // green
+    prey_material.ka.Reset(0.2,0.2,0.2,1);
+    prey_material.kd.Reset(0,1,0,1);
+    prey_material.ks.Reset(0,1,0,1);
+    prey_material.kt.Reset(0,0,0,1);
+    prey_material.emission.Reset(0,0,0,1);
+    prey_material.shininess = 1;
+    prey_material.indexofrefraction = 1;
+    prey_material.texture = NULL;
+    prey_material.texture_index = -1;
+    prey_material.id = 33;
+  }
+
+  // Draw all prey
+  glEnable(GL_LIGHTING);
+  LoadMaterial(&prey_material);
+  for (unsigned int i = 0; i < prey_list.size(); i++)
+      DrawShape(&prey_list[i].icon);
+
+  // Clean up
+  if (!lighting) glDisable(GL_LIGHTING);
+}
+
+
+void DrawMinimapHunters(void)
+{
+  // Setup
+  GLboolean lighting = glIsEnabled(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
+
+  // Define hunter material
+  static R3Material hunter_material;
+  if (hunter_material.id != 33) {
+      // red
+      hunter_material.ka.Reset(0.2,0.2,0.2,1);
+      hunter_material.kd.Reset(1,0,0,1);
+      hunter_material.ks.Reset(1,0,0,1);
+      hunter_material.kt.Reset(0,0,0,1);
+      hunter_material.emission.Reset(0,0,0,1);
+      hunter_material.shininess = 1;
+      hunter_material.indexofrefraction = 1;
+      hunter_material.texture = NULL;
+      hunter_material.texture_index = -1;
+      hunter_material.id = 33;
+  }
+
+  // Draw all particle sources
+  glEnable(GL_LIGHTING);
+  LoadMaterial(&hunter_material);
+  for (unsigned int i = 0; i < hunter_list.size(); i++) {
+      DrawShape(&hunter_list[i].icon);
+  }
+
+  // Clean up
+  if (!lighting) glDisable(GL_LIGHTING);
+}
+
+
+
+void DrawMinimapSelf(void)
+{
+  // Setup
+  GLboolean lighting = glIsEnabled(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
+
+  // Define prey material
+  static R3Material prey_material;
+  if (prey_material.id != 33) {
+    // blue
+    prey_material.ka.Reset(0.2,0.2,0.2,1);
+    prey_material.kd.Reset(0,0,1,1);
+    prey_material.ks.Reset(0,0,1,1);
+    prey_material.kt.Reset(0,0,0,1);
+    prey_material.emission.Reset(0,0,0,1);
+    prey_material.shininess = 1;
+    prey_material.indexofrefraction = 1;
+    prey_material.texture = NULL;
+    prey_material.texture_index = -1;
+    prey_material.id = 33;
+  }
+
+  // Draw self
+  glEnable(GL_LIGHTING);
+  LoadMaterial(&prey_material);
+  R3Shape self = R3Shape();
+  self.type = R3_CIRCLE_SHAPE;
+  R3Circle circle = R3Circle(player.getPosition(), 7.5, R3yaxis_vector);
+  self.circle = &circle;
+  DrawShape(&self);
+
+  // Clean up
+  if (!lighting) glDisable(GL_LIGHTING);
 }
 
 
@@ -1070,10 +1174,13 @@ void GLUTRedraw(void)
   DrawParticleSinks(scene);
 
   // Draw prey
-  DrawPrey(scene, delta_time);
+  DrawMinimapPrey();
   
   // Draw hunters
-  DrawHunters(scene, delta_time, current_time);
+  DrawMinimapHunters();
+
+  // Draw self
+  DrawMinimapSelf();
 
   // Draw scene surfaces
   if (show_faces) {
@@ -1121,14 +1228,14 @@ void GLUTRedraw(void)
   // Update and draw prey
   for (unsigned int i = 0; i < prey_list.size(); i++)
     prey_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
-  DrawPrey(scene, delta_time);
+  DrawPrey();
   
   // Update and draw hunters
   for (unsigned int i = 0; i < hunter_list.size(); i++) {
       hunter_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
       hunter_list[i].shoot(scene, current_time, delta_time, player.getPosition());
   }
-  DrawHunters(scene, delta_time, current_time);
+  DrawHunters();
 
   // Draw scene surfaces
   if (show_faces) {

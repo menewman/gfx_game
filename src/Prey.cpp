@@ -15,7 +15,10 @@ Prey(double mass, double speed, R3Point position, R3Vector velocity, R3Shape sha
       position(position),
       velocity(velocity),
       shape(shape)
-{}
+{
+    icon.type = R3_CIRCLE_SHAPE;
+    icon.circle = new R3Circle(position, 7.5, R3yaxis_vector);
+}
 
 void Prey::
 setVelocity(const R3Vector& newVelocity)
@@ -74,4 +77,5 @@ updatePosition(double delta_time, R3Point playerPos, double bound)
     else if (shape.type == R3_CIRCLE_SHAPE) {
         shape.circle->Reposition(position);
     }
+    icon.circle->Reposition(position);
 }
