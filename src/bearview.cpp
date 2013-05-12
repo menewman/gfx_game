@@ -64,6 +64,7 @@ static int move_right = 0;
 static int move_jump = 0;
 static int turn_left = 0;
 static int turn_right = 0;
+static double sprint = 1;
 static int menu = 0;
 
 
@@ -1107,25 +1108,25 @@ void GLUTRedraw(void)
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
       forward.SetY(0);
-      player.position += forward*delta_time*player.speed;
+      player.position += forward*delta_time*player.speed*sprint;
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
-      player.position += backward*delta_time*player.speed;
+      player.position += backward*delta_time*player.speed*sprint;
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
-      player.position += left*delta_time*player.speed;
+      player.position += left*delta_time*player.speed*sprint;
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
-      player.position += right*delta_time*player.speed;
+      player.position += right*delta_time*player.speed*sprint;
   }
   if (move_jump) {
       if (player.position.Y() <= (player.height + TOLERANCE)) {
@@ -1319,7 +1320,6 @@ void GLUTRedraw(void)
   glutSwapBuffers();
 }    
 
-
 void GLUTMotion(int x, int y)
 {
   // Invert y coordinate
@@ -1375,8 +1375,6 @@ void GLUTMotion(int x, int y)
   GLUTmouse[0] = x;
   GLUTmouse[1] = y;
 }
-
-
 
 void GLUTMouse(int button, int state, int x, int y)
 {
@@ -1528,6 +1526,11 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       turn_right = 1;
       break;
       
+  case 'F':
+  case 'f':
+      sprint = 1.5;
+      break;
+      
 /*
   case 'Q':
   case 'q':
@@ -1593,6 +1596,11 @@ void GLUTKeyboardUp(unsigned char key, int x, int y)
   case 'E':
   case 'e':
       turn_right = 0;
+      break;
+      
+  case 'F':
+  case 'f':
+      sprint = 1;
       break;
 	  
 /*  
