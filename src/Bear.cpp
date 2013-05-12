@@ -14,7 +14,9 @@ Bear(double mass, double speed, double height, R3Vector velocity, R3Point positi
       speed(speed),
       height(height),
       velocity(velocity),
-      position(position)
+      position(position),
+      health(100),
+      stamina(100)
 {
 }
 

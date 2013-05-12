@@ -23,6 +23,8 @@ public:
     double height;
     R3Vector velocity;
     R3Point position;
+    double health;
+    double stamina;
 /*
 private:
     double mass;

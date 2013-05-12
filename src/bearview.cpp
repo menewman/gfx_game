@@ -13,6 +13,7 @@
 #include "Bear.h"
 #include "Prey.h"
 #include "Hunter.h"
+#include <sstream>
 #define R3Rgb R2Pixel
 #define PI 3.14159265
 #define TOLERANCE 0.0001
@@ -189,11 +190,17 @@ void DrawTextBox()
 
     glColor3d(0, 0, 0);
     glRasterPos2i(10, YSize - 25);
-    const char *s = "word";
-    for (int i = 0; i < 4; i++)
-    {
-        char c = *(s + i);
-        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
+    
+    // convert player health to string for display
+    std::ostringstream strs;
+    strs << player.health;
+    std::string str = strs.str();
+    
+    std::string health_str = "health: ";
+    std::string display_str = health_str + str;
+    
+    for(std::string::size_type i = 0; i < display_str.size(); ++i) {
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, display_str[i]);
     }
 
     if (menu == 1) {
@@ -212,7 +219,6 @@ void DrawTextBox()
         glVertex2f(7, YSize - 50);	
         glEnd();
     }
-
     glEnable(GL_DEPTH_TEST);	
 }
 
@@ -1099,31 +1105,36 @@ void GLUTRedraw(void)
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
       forward.SetY(0);
-      player.setPosition(player.getPosition() + forward*delta_time * player.getSpeed());
+      //player.setPosition(player.getPosition() + forward*delta_time * player.getSpeed());
+      player.position += forward*delta_time*player.speed;
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
-      player.setPosition(player.getPosition() + backward*delta_time * player.getSpeed());
+      //player.setPosition(player.getPosition() + backward*delta_time * player.getSpeed());
+      player.position += backward*delta_time*player.speed;
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
-      player.setPosition(player.getPosition() + left*delta_time * player.getSpeed());
+      //player.setPosition(player.getPosition() + left*delta_time * player.getSpeed());
+      player.position += left*delta_time*player.speed;
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
-      player.setPosition(player.getPosition() + right*delta_time * player.getSpeed());
+      //player.setPosition(player.getPosition() + right*delta_time * player.getSpeed());
+      player.position += right*delta_time*player.speed;
   }
   if (move_jump) {
-      if (player.getPosition().Y() <= (player.getHeight() + TOLERANCE)) {
-          R3Vector velo = R3Vector(player.getVelocity());
-          velo += R3Vector(0,10,0); // magic number
-          player.setVelocity(velo);
+      //if (player.getPosition().Y() <= (player.getHeight() + TOLERANCE)) {
+      if (player.position.Y() <= (player.height + TOLERANCE)) {
+          //R3Vector velo = R3Vector(player.velocity);
+          //velo += R3Vector(0,10,0); // magic number
+          player.velocity += R3Vector(0,10,0);
       }
       move_jump = 0;
   }
@@ -1140,19 +1151,16 @@ void GLUTRedraw(void)
   }
   
   // make sure that player doesn't leave the map
-  R3Point newPosition = R3Point(player.getPosition());
-  if (newPosition.X() > BOUND)
-      newPosition.SetX(BOUND);
-  else if (newPosition.X() < -BOUND)
-      newPosition.SetX(-BOUND);
-  if (newPosition.Z() > BOUND)
-      newPosition.SetZ(BOUND);
-  else if (newPosition.Z() < -BOUND)
-      newPosition.SetZ(-BOUND);
-  player.setPosition(newPosition);
+  if (player.position.X() > BOUND)
+      player.position.SetX(BOUND);
+  else if (player.position.X() < -BOUND)
+      player.position.SetX(-BOUND);
+  if (player.position.Z() > BOUND)
+      player.position.SetZ(BOUND);
+  else if (player.position.Z() < -BOUND)
+      player.position.SetZ(-BOUND);
 
   /* Drawing minimap */
-
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Render to texture
 
   // Clear the background of our window
@@ -1200,8 +1208,6 @@ void GLUTRedraw(void)
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind
 
   /* End drawing minimap */
-
-
 
   // set the camera to the player's position
   camera.eye = player.getPosition();
@@ -1251,7 +1257,6 @@ void GLUTRedraw(void)
     DrawScene(scene);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
-
 
   glDisable(GL_LIGHTING);
 
