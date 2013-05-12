@@ -377,7 +377,8 @@ void GenerateParticles(R3Scene *scene, double current_time, double delta_time, R
          particle->elasticity = source->elasticity;
          particle->lifetime = source->lifetime;
          particle->birthday = current_time;
-         particle->material = source->material;   
+         particle->material = source->material;
+         particle->bullet = false;  
 
          // Add particle to scene
          scene->particles.push_back(particle);
@@ -590,6 +591,40 @@ void UpdateParticles(R3Scene *scene, double current_time, double delta_time, int
   }
 }
 
+////////////////////////////////////////////////////////////
+// Special functionality
+////////////////////////////////////////////////////////////
+
+// returns the number of bullet particles within the box
+// deletes any particles in the hit box
+double countBulletHits(R3Scene *scene, R3Box bbox)
+{
+    // vectors to be deleted
+    std::vector<int> delIndices;
+    
+    int hits = 0;
+    for (int k = 0; k < scene->NParticles(); k++) {
+        R3Particle *p = scene->Particle(k);
+        if (!p->bullet)
+            continue;
+        R3Point pos = p->position;
+        if (pos.X() < bbox.XMin() || pos.X() > bbox.XMax())
+            continue;
+        if (pos.Y() < bbox.YMin() || pos.Y() > bbox.YMax())
+            continue;
+        if (pos.Z() < bbox.ZMin() || pos.Z() > bbox.ZMax())
+            continue;
+        hits++;
+        delIndices.push_back(k);
+    }
+    
+    // delete any vectors tagged for deletion
+    std::reverse(delIndices.begin(), delIndices.end());
+    for (unsigned int k = 0; k < delIndices.size(); k++)
+        scene->particles.erase(scene->particles.begin() + delIndices[k]);
+    
+    return hits;
+}
 
 
 ////////////////////////////////////////////////////////////
