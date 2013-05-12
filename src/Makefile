@@ -27,12 +27,12 @@ LIBS=R3/libR3.a R2/libR2.a jpeg/libjpeg.a
 #
 UNAME := $(shell uname)
 ifneq (,$(findstring Darwin,$(UNAME)))
-	GLLIBS = -framework GLUT -framework OpenGL
+	GLLIBS = -framework GLUT -framework OpenGL -framework OpenAL
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
-	GLLIBS = -lglut32 -lglu32 -lopengl32 -lglew32
+	GLLIBS = -lglut32 -lglu32 -lopengl32 -lglew32 -lopenal32 -lalut32
   else
-	GLLIBS = -lglut -lGLU -lGL -lGLEW
+	GLLIBS = -lglut -lGLU -lGL -lGLEW -lopenal -lalut
   endif
 endif
 

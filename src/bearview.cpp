@@ -13,11 +13,17 @@
 #include "Bear.h"
 #include "Prey.h"
 #include "Hunter.h"
+#include <errno.h>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 #define R3Rgb R2Pixel
 #define PI 3.14159265
 #define TOLERANCE 0.0001
 #define BOUND 500
+#define NUM_BUFFERS 1
+#define NUM_SOURCES 1
+#define NUM_ENVIRONMENTS 1
 
 ////////////////////////////////////////////////////////////
 // GLOBAL CONSTANTS
@@ -1303,13 +1309,20 @@ void GLUTRedraw(void)
     }
   }
 
+  /* Sounds */
+
+  // Listener
+  alListener3f(AL_POSITION, camera.eye.X(), camera.eye.Y(), camera.eye.Y());
+
+  /* End sounds */
+
   // Quit here so that can save image before exit
   if (quit) {
     if (output_image_name) GLUTSaveImage(output_image_name);
     GLUTStop();
   }
 
-	previous_time = current_time;
+  previous_time = current_time;
   // Swap buffers 
   glutSwapBuffers();
 }    
@@ -1934,9 +1947,41 @@ main(int argc, char **argv)
   Hunter hunter = Hunter(100, 5, R3Point(10, 3, 10), R3Vector(0,0,0), *hsource);
   hunter_list.push_back(hunter);
 
+  /* Sounds */
+
+  alutInit(&argc, argv);
+
+  // Device and context
+  ALCdevice *device = alcOpenDevice(NULL);
+  ALCcontext *context = alcCreateContext(device, NULL);
+  alcMakeContextCurrent(context);
+
+  ALuint source, buffer;
+  alGenSources(1, &source);
+  buffer = alutCreateBufferFromFile("input/naturesounds.wav"); // Requires running from upper directory, not src
+
+  // Ambient sound
+  alSourcef(source, AL_PITCH, 1);
+  alSourcef(source, AL_GAIN, 1);
+  alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
+  alSource3f(source, AL_POSITION, 0.0f, 0.0f, 0.0f);
+  alSourcei(source, AL_LOOPING, AL_TRUE);
+  alSourcei(source, AL_BUFFER, buffer);
+
+  alSourcePlay(source);
+
+  /* End sounds */
+
   // Run GLUT interface
   GLUTMainLoop();
-  
+
+  /*
+  alDeleteSources(1, &source);
+  alDeleteBuffers(1, &buffer);
+  alcDestroyContext(context);
+  alcCloseDevice(device);
+  */
+
   delete shape1;
   delete shape2;
   delete hshape;
