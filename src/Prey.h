@@ -1,4 +1,6 @@
 // class definition
+class Hunter;
+
 class Prey {
 public:
     // constructor functions
@@ -13,7 +15,11 @@ public:
 
     // manipulation functions/operators
     virtual void setVelocity(const R3Vector& newVelocity);
-    virtual void updatePosition(double delta_time, R3Point playerPos, double bound);
+    virtual void updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scene, vector<Prey>& prey_list, vector<Hunter>& hunter_list, R3Box bearBBox);
+    
+    // other functions
+    bool collides(R3Scene *scene, R3Node *node);
+    bool collides(R3Scene *scene, vector<Prey>& prey_list, vector<Hunter>& hunter_list, R3Box bearBBox);
     
     // public variables
     double mass;

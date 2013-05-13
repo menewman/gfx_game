@@ -3,6 +3,7 @@
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "particle.h"
+#include "Prey.h"
 #include "Hunter.h"
 #define DETECT_BOUND 150
 #define PI 3.14159265359
@@ -30,7 +31,8 @@ setVelocity(const R3Vector& newVelocity)
 }
 
 void Hunter::
-updatePosition(double delta_time, R3Point playerPos, double bound) {       
+updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scene, vector<Prey>& prey_list, vector<Hunter>& hunter_list, R3Box bearBBox)
+{       
     R3Vector toPlayer = playerPos - position;
     toPlayer.SetY(0);
     
@@ -84,6 +86,45 @@ updatePosition(double delta_time, R3Point playerPos, double bound) {
         source.shape->circle->Reposition(position);
         bbox = source.shape->circle->BBox();
     }
+    /*
+    if (collides(scene, prey_list, hunter_list, bearBBox)) {
+        position -= -1.5*toPlayer*delta_time*speed;
+        // update the relevant shape parameters
+        if (source.shape->type == R3_SPHERE_SHAPE) {
+            source.shape->sphere->Reposition(position);
+            bbox = source.shape->sphere->BBox();
+        }
+        else if (source.shape->type == R3_BOX_SHAPE) {
+            // translate along the vector between centroid and new position
+            R3Vector toNew = position - source.shape->box->Centroid();
+            toNew.SetY(0);
+            source.shape->box->Translate(toNew);
+            bbox = R3Box(*source.shape->box);
+        }
+        else if (source.shape->type == R3_CYLINDER_SHAPE) {
+            source.shape->cylinder->Reposition(position);
+            bbox = source.shape->cylinder->BBox();
+        }
+        else if (source.shape->type == R3_CONE_SHAPE) {
+            source.shape->cone->Reposition(position);
+            bbox = source.shape->cone->BBox();
+        }
+        else if (source.shape->type == R3_MESH_SHAPE) {
+            ; // ????? how do you move meshes anyway?
+        }
+        else if (source.shape->type == R3_SEGMENT_SHAPE) {
+            // for segment: 'position' is arbitrarily the centroid
+            R3Vector toNew = position - source.shape->segment->Centroid();
+            toNew.SetY(0);
+            source.shape->segment->Translate(toNew);
+            bbox = source.shape->segment->BBox();
+        }
+        else if (source.shape->type == R3_CIRCLE_SHAPE) {
+            source.shape->circle->Reposition(position);
+            bbox = source.shape->circle->BBox();
+        }
+    }
+    */
     icon.circle->Reposition(position);
 }
 
@@ -197,4 +238,49 @@ shoot(R3Scene *scene, double current_time, double delta_time, R3Point playerPos)
          // Add particle to scene
          scene->particles.push_back(particle);
      }
+}
+
+// recursive method, returns true if hunter collides with
+//     node or any of its children
+bool Hunter::
+collides(R3Scene *scene, R3Node *node)
+{
+    if (bbox.intersects(node->bbox)) {
+        return true;
+    }
+    for (unsigned int i = 0; i < node->children.size(); i++) {
+        if (collides(scene, node->children[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// returns true iff hunter collides with a node in the scene
+bool Hunter::
+collides(R3Scene *scene, vector<Prey>& prey_list, vector<Hunter>& hunter_list, R3Box bearBBox)
+{
+    // recurse through the scene's nodes
+    R3Node *root = scene->Root();
+    for (unsigned int i = 0; i < root->children.size(); i++) {
+        if (collides(scene, root->children[i])) {
+            return true;
+        }
+    }
+    for (unsigned int i = 0; i < prey_list.size(); i++) {
+        // check prey bounding box
+        if (bbox.intersects(prey_list[i].bbox))
+            return true;
+    }
+    for (unsigned int i = 0; i < hunter_list.size(); i++) {
+        // shouldn't check intersection with itself
+        if (hunter_list[i].position == position)
+            continue;
+        // check hunter bounding box
+        if (bbox.intersects(hunter_list[i].bbox))
+            return true;
+    }
+    if (bbox.intersects(bearBBox))
+        return true;
+    return false;
 }

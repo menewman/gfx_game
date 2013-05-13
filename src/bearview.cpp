@@ -1253,12 +1253,12 @@ void GLUTRedraw(void)
   
   // Update and draw prey
   for (unsigned int i = 0; i < prey_list.size(); i++)
-    prey_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
+      prey_list[i].updatePosition(delta_time, player.getPosition(), BOUND, scene, prey_list, hunter_list, player.bbox);
   DrawPrey();
   
   // Update and draw hunters
   for (unsigned int i = 0; i < hunter_list.size(); i++) {
-      hunter_list[i].updatePosition(delta_time, player.getPosition(), BOUND);
+      hunter_list[i].updatePosition(delta_time, player.getPosition(), BOUND, scene, prey_list, hunter_list, player.bbox);
       hunter_list[i].shoot(scene, current_time, delta_time, player.getPosition());
   }
   DrawHunters();
@@ -1938,6 +1938,8 @@ main(int argc, char **argv)
   // initialize some prey
   Prey prey1 = Prey(100, 20, R3Point(3,3,3), R3Vector(0,0,0), *shape1);
   Prey prey2 = Prey(100, 15, R3Point(-3,3,-3), R3Vector(0,0,0), *shape2);
+  prey1.bbox = sphere1.BBox();
+  prey2.bbox = sphere2.BBox();
   prey_list.push_back(prey1);
   prey_list.push_back(prey2);
   
@@ -1974,6 +1976,7 @@ main(int argc, char **argv)
   
   // initialize a hunter
   Hunter hunter = Hunter(100, 5, R3Point(10, 3, 10), R3Vector(0,0,0), *hsource);
+  hunter.bbox = hsphere.BBox();
   hunter_list.push_back(hunter);
 
   /* Sounds */
