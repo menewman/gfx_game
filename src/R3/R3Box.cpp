@@ -310,18 +310,68 @@ Draw(void) const
     { 3, 7, 4, 0 },
     { 1, 5, 6, 2 }
   };
+	
+	// normal draw
+	glBegin(GL_QUADS);
+	for (int i = 0; i < 6; i++) {
+		glNormal3d(normals[i][0], normals[i][1], normals[i][2]);
+		for (int j = 0; j < 4; j++) {
+			const R3Point& p = corners[surface_paths[i][j]];
+			glTexCoord2d(texcoords[j][0], texcoords[j][1]);
+			glVertex3d(p[0], p[1], p[2]);
+		}
+	}
+	glEnd();
 
-  // Draw box
-  glBegin(GL_QUADS);
-  for (int i = 0; i < 6; i++) {
-    glNormal3d(normals[i][0], normals[i][1], normals[i][2]);
-    for (int j = 0; j < 4; j++) {
-      const R3Point& p = corners[surface_paths[i][j]];
-      glTexCoord2d(texcoords[j][0], texcoords[j][1]);
-      glVertex3d(p[0], p[1], p[2]);
-    }
-  }
+	/*      For tiling textures, doesn't currently work but I saved it
+	// Draw box
+	glBegin(GL_QUADS);
+
+	double tex_size = 100;
+	for (int i = 0; i < 6; i++) {
+		R3Point pLL = corners[surface_paths[i][0]];
+	R3Point pLR = corners[surface_paths[i][1]];
+	R3Point pUL = corners[surface_paths[i][3]];
+	double dim1rep = (pLR - pLL).Length();
+	fprintf(stderr, "dim1rep: %f\n", dim1rep);
+	double dim2rep = (pUL - pLL).Length();
+	R3Vector dim1V = pLR - pLL;
+	dim1V.Normalize();
+	R3Vector dim2V = pUL - pLL;
+	dim2V.Normalize();
+	
+	for (int k = 0; k < (dim1rep / tex_size); k++) {
+		for (int j = 0; j < (dim2rep / tex_size); j++) {
+			glNormal3d(normals[i][0], normals[i][1], normals[i][2]);
+			R3Point pTemp = pLL + i * dim1V + j * dim2V;
+			glTexCoord2d(texcoords[0][0], texcoords[0][1]);
+			glVertex3d(pTemp[0], pTemp[1], pTemp[2]);
+			
+			pTemp = pLL + (i + 1) * dim1V + j * dim2V;
+			glTexCoord2d(texcoords[1][0], texcoords[1][1]);
+			glVertex3d(pTemp[0], pTemp[1], pTemp[2]);
+			
+			pTemp = pLL + (i + 1) * dim1V + (j + 1) * dim2V;
+			glTexCoord2d(texcoords[2][0], texcoords[2][1]);
+			glVertex3d(pTemp[0], pTemp[1], pTemp[2]);
+			
+			pTemp = pLL + i * dim1V + (j+1) * dim2V;
+			glTexCoord2d(texcoords[3][0], texcoords[3][1]);
+			glVertex3d(pTemp[0], pTemp[1], pTemp[2]);
+			
+			/*
+				const R3Point& p = corners[surface_paths[i][j]];
+				glTexCoord2d(texcoords[j][0], texcoords[j][1]);
+				glVertex3d(p[0], p[1], p[2]); 
+				
+			}
+			
+			
+		}
+	} 
+    
   glEnd();
+  */
 }
 
 
