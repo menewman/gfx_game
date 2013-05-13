@@ -1,5 +1,4 @@
 // Source file for the scene file viewer
-
 //# define cygwin         // comment this line out to compile in cygwin without glew and openAL
 
 
@@ -501,10 +500,9 @@ void LoadLights(R3Scene *scene)
 }
 
 
-int insideViewingFrustrum(R3Scene *scene, R3Node *node) {
+int insideViewingFrustrum(R3Camera *camera, R3Node *node) {
        // find planes that define viewing frustrum
 	// we need a normal and a point to define each plane.
-        R3Camera *camera = &scene->camera;
 
 	R3Point p = camera->eye;
 	R3Point np = p + camera->towards*camera->neardist;
@@ -630,25 +628,25 @@ void DrawNode(R3Scene *scene, R3Node *node, int minimap)
 
   // Load material
   if (node->material) LoadMaterial(node->material);
-int inside;
-if (minimap) inside = 1;
-else inside = insideViewingFrustrum(scene, node); 
-//int inside = 1;
+  int inside;
+  if (minimap) inside = 1;
+  else inside = insideViewingFrustrum(&camera, node); 
+  //int inside = 1;
 
-	// Draw shape
-	if (node->shape) {
-		//only draw shape if its bounding box is within the viewing frustrum
-		if (inside) DrawShape(node->shape); 
-	}
+  // Draw shape
+  if (node->shape) {
+    //only draw shape if its bounding box is within the viewing frustrum
+    if (inside) DrawShape(node->shape); 
+  }
 
-	// Draw children nodes, but only if current node's bounding box 
-	// is within the viewing frustrum
-	if (inside) {
+  // Draw children nodes, but only if current node's bounding box 
+  // is within the viewing frustrum
+  if (inside) {
                   
-		for (int i = 0; i < (int) node->children.size(); i++) {
-			DrawNode(scene, node->children[i], minimap);
-		}
-         }
+    for (int i = 0; i < (int) node->children.size(); i++) {
+      DrawNode(scene, node->children[i], minimap);
+    }
+  }
 
   // Restore previous transformation
   glPopMatrix();
