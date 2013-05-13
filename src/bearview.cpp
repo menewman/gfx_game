@@ -1,6 +1,5 @@
 // Source file for the scene file viewer
-
-//# define cygwin  // comment this line out to compile in cygwin without glew and openAL
+//# define cygwin         // comment this line out to compile in cygwin without glew and openAL
 
 
 ////////////////////////////////////////////////////////////
@@ -616,43 +615,43 @@ int insideViewingFrustrum(R3Scene *scene, R3Node *node) {
 
 void DrawNode(R3Scene *scene, R3Node *node, int minimap)
 {
-    // Push transformation onto stack
-    glPushMatrix();
-    LoadMatrix(&node->transformation);
+  // Push transformation onto stack
+  glPushMatrix();
+  LoadMatrix(&node->transformation);
 
-    // Load material
-    if (node->material) LoadMaterial(node->material);
-    int inside;
-    if (minimap)
-        inside = 1;
-    else
-        inside = insideViewingFrustrum(scene, node); 
-    inside = 1; // DEBUG -- disabled frustrum culling until it works
+  // Load material
+  if (node->material) LoadMaterial(node->material);
+  int inside;
+  if (minimap) inside = 1;
+  else inside = insideViewingFrustrum(&camera, node); 
+  //int inside = 1;
 
-    // Draw shape
-    if (node->shape) {
-        //only draw shape if its bounding box is within the viewing frustrum
-        if (inside) DrawShape(node->shape); 
+  // Draw shape
+  if (node->shape) {
+    //only draw shape if its bounding box is within the viewing frustrum
+    if (inside) DrawShape(node->shape); 
+  }
+
+  // Draw children nodes, but only if current node's bounding box 
+  // is within the viewing frustrum
+  if (inside) {
+                  
+    for (int i = 0; i < (int) node->children.size(); i++) {
+      DrawNode(scene, node->children[i], minimap);
     }
+  }
 
-    // Draw children nodes, but only if current node's bounding box 
-    // is within the viewing frustrum
-    if (inside) {           
-        for (int i = 0; i < (int) node->children.size(); i++) {
-            DrawNode(scene, node->children[i], minimap);
-        }
-    }
+  // Restore previous transformation
+  glPopMatrix();
 
-    // Restore previous transformation
-    glPopMatrix();
+  // Show bounding box
+  if (show_bboxes) {
+    GLboolean lighting = glIsEnabled(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
+    node->bbox.Outline();
+    if (lighting) glEnable(GL_LIGHTING);
+  }
 
-    // Show bounding box
-    if (show_bboxes) {
-        GLboolean lighting = glIsEnabled(GL_LIGHTING);
-        glDisable(GL_LIGHTING);
-        node->bbox.Outline();
-        if (lighting) glEnable(GL_LIGHTING);
-    }
 }
 
 
