@@ -279,6 +279,22 @@ int sign(double x) {
     return 0;
 }
 
+// returns true iff this box aligns with that box
+// ONLY WORKS IF BOTH BOXES ARE AXIS-ALIGNED
+bool R3Box::
+intersects(const R3Box& box)
+{
+    // have to overlap in all three planes - x, y, z
+    if (XMax() < box.XMin() || XMin() > box.XMax())
+        return false; // doesn't overlap in x
+    if (YMax() < box.YMin() || YMin() > box.YMax())
+        return false; // doesn't overlap in y
+    if (ZMax() < box.ZMin() || ZMin() > box.ZMax())
+        return false; // doesn't overlap in z
+    return true;
+}
+
+/*
 bool R3Box::
 intersects(const R3Box& box)
 {
@@ -379,6 +395,7 @@ intersects(const R3Box& box)
     }
     return (not_same_count >= 2);
 }
+*/
 
 void R3Box::
 Draw(void) const

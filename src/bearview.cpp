@@ -1115,32 +1115,32 @@ void GLUTRedraw(void)
       forward.Normalize();
       forward.SetY(0);
       player.position += forward*delta_time*player.speed*sprint;
-      //if (player.collides(scene))
-          //player.position -= forward*delta_time*player.speed*sprint;
+      if (player.collides(scene))
+          player.position -= 2*forward*delta_time*player.speed*sprint;
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
       player.position += backward*delta_time*player.speed*sprint;
-      //if (player.collides(scene))
-          //player.position -= backward*delta_time*player.speed*sprint;
+      if (player.collides(scene))
+          player.position -= 2*backward*delta_time*player.speed*sprint;
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
       player.position += left*delta_time*player.speed*sprint;
-      //if (player.collides(scene))
-          //player.position -= left*delta_time*player.speed*sprint;
+      if (player.collides(scene))
+          player.position -= 2*left*delta_time*player.speed*sprint;
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
       player.position += right*delta_time*player.speed*sprint;
-      //if (player.collides(scene))
-          //player.position -= right*delta_time*player.speed*sprint;
+      if (player.collides(scene))
+          player.position -= 2*right*delta_time*player.speed*sprint;
   }
   if (move_jump) {
       if (player.position.Y() <= (player.height + TOLERANCE)) {
@@ -1916,6 +1916,12 @@ main(int argc, char **argv)
   R3Vector init_velocity = R3Vector(0, 0, 0);
   camera.eye.SetY(height);
   player = Bear(mass, speed, height, init_velocity, R3Point(camera.eye));
+  
+  // fix the player's bbox
+  R3Point cyl_center = R3Point(player.position);
+  cyl_center.SetY((height/2.0) + 0.5);
+  R3Cylinder player_cyl = R3Cylinder(cyl_center, 1.5, height);
+  player.bbox = player_cyl.BBox();
   
   // initialize prey shapes
   R3Shape *shape1 = new R3Shape();

@@ -19,7 +19,7 @@ Bear(double mass, double speed, double height, R3Vector velocity, R3Point positi
       position(position),
       health(100),
       stamina(100),
-      bbox(R3Box(position.X()-1.5, 0, position.Z()-1.5, position.X()+1.5, height+1, position.Z()+1.5))
+      bbox(R3Box(position.X()-1.5, 0.5, position.Z()-1.5, position.X()+1.5, height+1, position.Z()+1.5))
 {
 }
 
@@ -54,8 +54,18 @@ updatePosition(double delta_time)
 bool Bear::
 collides(R3Scene *scene, R3Node *node)
 {
-    if (bbox.intersects(node->bbox))
+    if (bbox.intersects(node->bbox)) {
+        // DEBUG CODE
+        /*fprintf(stderr, "intersecting with shape type %d\n", node->shape->type);
+        fprintf(stderr, "box min: (%f, %f, %f)\n", node->shape->box->XMin(), 
+                            node->shape->box->YMin(), node->shape->box->ZMin());
+        fprintf(stderr, "box max: (%f, %f, %f)\n", node->shape->box->XMax(), 
+                            node->shape->box->YMax(), node->shape->box->ZMax());
+        fprintf(stderr, "player box min: (%f, %f, %f)\n", bbox.XMin(), bbox.YMin(), bbox.ZMin());
+        fprintf(stderr, "player box max: (%f, %f, %f)\n", bbox.XMax(), bbox.YMax(), bbox.ZMax());
+        fprintf(stderr, "\n");*/
         return true;
+    }
     for (unsigned int i = 0; i < node->children.size(); i++) {
         if (collides(scene, node->children[i])) {
             return true;
