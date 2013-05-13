@@ -493,8 +493,128 @@ void LoadLights(R3Scene *scene)
 }
 
 
+int insideViewingFrustrum(R3Scene *scene, R3Node *node) {
+       // find planes that define viewing frustrum
+	// we need a normal and a point to define each plane.
+        R3Camera *camera = &scene->camera;
 
-void DrawNode(R3Scene *scene, R3Node *node)
+	R3Point p = camera->eye;
+	R3Point np = p + camera->towards*camera->neardist;
+	R3Point fp = p + camera->towards*camera->fardist;
+
+	//normal to near plane
+	R3Vector nn = camera->towards;
+	double Dn = -nn.Dot(R3Vector(np.X(), np.Y(), np.Z()));
+	
+	//to far plane
+	R3Vector nf = -nn;
+	double Df = -nf.Dot(R3Vector(fp.X(), fp.Y(), fp.Z()));
+	
+	//to right plane  
+	R3Vector nr = np + (camera->right*camera->xfov*camera->neardist) - p;
+	nr.Normalize();
+	nr.Cross(camera->up);
+	nr = -nr;
+	double Dr = -nr.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+	
+	//to left plane 
+	R3Vector nl = np + (-camera->right*camera->xfov*camera->neardist) - p; 
+	nl.Normalize();
+	nl.Cross(camera->up);
+	double Dl = -nl.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+	
+	//top plane
+	R3Vector nu = np + (camera->up*camera->yfov*camera->neardist) - p;
+	nu.Normalize();
+	nu.Cross(camera->right);
+	double Du = -nu.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+	
+	//bottom plane
+	R3Vector nd = np + (-camera->up*camera->yfov*camera->neardist) - p;
+	nd.Normalize();
+	nd.Cross(camera->right);
+	nd = -nd;    
+	double Dd = -nd.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+
+	//it is possible that a box with all corners outside the viewing 
+	//frustrum is still partly within the viewing frustrum.
+	//so, check that all points are on the wrong side of the SAME 
+	//plane.  Some shapes might be drawn whose bounding boxes are 
+	//completely outside of the viewing frustrum, but whatever. 
+
+	R3Box box = node->bbox;
+
+	//check near plane 
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nn) + Dn >= 0); 
+	else { return 0; }
+
+	//far plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nf) + Df >= 0);
+	else { return 0; }
+
+	//right plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nr) + Dr >= 0);
+	else { return 0; }
+
+	//left plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nl) + Dl >= 0);
+	else { return 0; }
+
+	//up plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nu) + Du >= 0);
+	else { return 0; }
+
+	//down plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nd) + Dd >= 0);
+	else { return 0; }
+
+	return 1;
+
+}
+
+void DrawNode(R3Scene *scene, R3Node *node, int minimap)
 {
   // Push transformation onto stack
   glPushMatrix();
@@ -502,13 +622,25 @@ void DrawNode(R3Scene *scene, R3Node *node)
 
   // Load material
   if (node->material) LoadMaterial(node->material);
+int inside;
+if (minimap) inside = 1;
+else inside = insideViewingFrustrum(scene, node); 
+//int inside = 1;
 
-  // Draw shape
-  if (node->shape) DrawShape(node->shape);
+	// Draw shape
+	if (node->shape) {
+		//only draw shape if its bounding box is within the viewing frustrum
+		if (inside) DrawShape(node->shape); 
+	}
 
-  // Draw children nodes
-  for (int i = 0; i < (int) node->children.size(); i++) 
-    DrawNode(scene, node->children[i]);
+	// Draw children nodes, but only if current node's bounding box 
+	// is within the viewing frustrum
+	if (inside) {
+                  
+		for (int i = 0; i < (int) node->children.size(); i++) {
+			DrawNode(scene, node->children[i], minimap);
+		}
+         }
 
   // Restore previous transformation
   glPopMatrix();
@@ -639,10 +771,10 @@ void DrawCamera(R3Scene *scene)
 
 
 
-void DrawScene(R3Scene *scene) 
+void DrawScene(R3Scene *scene, int minimap) 
 {
   // Draw nodes recursively
-  DrawNode(scene, scene->root);
+  DrawNode(scene, scene->root, minimap);
 }
 
 
@@ -1214,7 +1346,7 @@ void GLUTRedraw(void)
   // Draw scene surfaces
   if (show_faces) {
     glEnable(GL_LIGHTING);
-    DrawScene(scene);
+    DrawScene(scene, 1);
   }
 
   // Draw scene edges
@@ -1222,7 +1354,7 @@ void GLUTRedraw(void)
     glDisable(GL_LIGHTING);
     glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    DrawScene(scene);
+    DrawScene(scene, 1);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
@@ -1267,7 +1399,7 @@ void GLUTRedraw(void)
   // Draw scene surfaces
   if (show_faces) {
     glEnable(GL_LIGHTING);
-    DrawScene(scene);
+    DrawScene(scene, 0);
   }
 
   // Draw scene edges
@@ -1275,7 +1407,7 @@ void GLUTRedraw(void)
     glDisable(GL_LIGHTING);
     glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    DrawScene(scene);
+    DrawScene(scene, 0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
