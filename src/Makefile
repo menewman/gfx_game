@@ -30,7 +30,7 @@ ifneq (,$(findstring Darwin,$(UNAME)))
 	GLLIBS = -framework GLUT -framework OpenGL -framework OpenAL
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
-	GLLIBS = -lglut32 -lglu32 -lopengl32 -lglew32 -lopenal32 -lalut32
+	GLLIBS = -lglut32 -lglu32 -lopengl32
   else
 	GLLIBS = -lglut -lGLU -lGL -lGLEW -lopenal -lalut
   endif

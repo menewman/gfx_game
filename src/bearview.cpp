@@ -1,12 +1,18 @@
 // Source file for the scene file viewer
 
+//# define cygwin         // comment this line out to compile in cygwin without glew and openAL
 
 
 ////////////////////////////////////////////////////////////
 // INCLUDE FILES
 ////////////////////////////////////////////////////////////
 
-#include "cos426_opengl.h"
+# ifndef cygwin
+#	include "cos426_opengl.h"
+# else
+# 	include "cos426_opengl_cyg.h"
+# endif
+
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "particle.h"
@@ -51,7 +57,9 @@ static R3Camera camera;
 static Bear player;
 static vector<Prey> prey_list;
 static vector<Hunter> hunter_list;
+#ifndef cygwin
 static vector<ALuint> source_list;
+#endif
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -1314,8 +1322,9 @@ void GLUTRedraw(void)
   player.health -= (2*numHits);
 
   /* Drawing minimap */
+  #ifndef cygwin
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Render to texture
-
+  
   // Clear the background of our window
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
 
@@ -1359,7 +1368,7 @@ void GLUTRedraw(void)
   }
 
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind
-
+	#endif
   /* End drawing minimap */
 
   // set the camera to the player's position
@@ -1457,7 +1466,7 @@ void GLUTRedraw(void)
   }
 
   /* Sounds */
-
+  #ifndef cygwin
   // Listener
   alListener3f(AL_POSITION, camera.eye.X(), camera.eye.Y(), camera.eye.Y());
   ALfloat orientation[] = {camera.towards.X(), camera.towards.Y(), camera.towards.Z(), camera.up.X(), camera.up.Y(), camera.up.Z()};
@@ -1479,7 +1488,7 @@ void GLUTRedraw(void)
               alSourceStop(source_list[i+1]);
       }
   }
-
+  #endif
   /* End sounds */
 
   // Quit here so that can save image before exit
@@ -1861,7 +1870,7 @@ void GLUTCreateMenu(void)
 
 
 /***** Framebuffer Initialization Functions *****/
-
+#ifndef cygwin
 
 void initFrameBufferDepthBuffer(void) {  
     glGenRenderbuffersEXT(1, &fbo_depth); // Generate one render buffer and store the ID in fbo_depth  
@@ -1917,7 +1926,7 @@ void initFrameBuffer(void) {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind our frame buffer  
 }
 
-
+#endif
 /***** End Framebuffer Initialization Functions *****/
 
 
@@ -1957,8 +1966,10 @@ void GLUTInit(int *argc, char **argv)
   GLUTCreateMenu();
 
   // Initialize glew
+  #ifndef cygwin
   glewInit();
   initFrameBuffer();
+  #endif
 }
 
 
@@ -2129,7 +2140,7 @@ main(int argc, char **argv)
   hunter_list.push_back(hunter);
 
   /* Sounds */
-
+  #ifndef cygwin
   // Note: must run from upper directory
 
   alutInit(&argc, argv);
@@ -2165,7 +2176,7 @@ main(int argc, char **argv)
       alSourcei(source1, AL_LOOPING, AL_TRUE);
       alSourcei(source1, AL_BUFFER, buffer1);
   }
-
+  #endif
   /* End sounds */
 
   // Run GLUT interface
