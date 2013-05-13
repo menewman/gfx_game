@@ -1,12 +1,18 @@
 // Source file for the scene file viewer
 
+//# define cygwin         // comment this line out to compile in cygwin without glew and openAL
 
 
 ////////////////////////////////////////////////////////////
 // INCLUDE FILES
 ////////////////////////////////////////////////////////////
 
-#include "cos426_opengl.h"
+# ifndef cygwin
+#	include "cos426_opengl.h"
+# else
+# 	include "cos426_opengl_cyg.h"
+# endif
+
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "particle.h"
@@ -51,6 +57,9 @@ static R3Camera camera;
 static Bear player;
 static vector<Prey> prey_list;
 static vector<Hunter> hunter_list;
+#ifndef cygwin
+static vector<ALuint> source_list;
+#endif
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -492,8 +501,128 @@ void LoadLights(R3Scene *scene)
 }
 
 
+int insideViewingFrustrum(R3Scene *scene, R3Node *node) {
+       // find planes that define viewing frustrum
+	// we need a normal and a point to define each plane.
+        R3Camera *camera = &scene->camera;
 
-void DrawNode(R3Scene *scene, R3Node *node)
+	R3Point p = camera->eye;
+	R3Point np = p + camera->towards*camera->neardist;
+	R3Point fp = p + camera->towards*camera->fardist;
+
+	//normal to near plane
+	R3Vector nn = camera->towards;
+	double Dn = -nn.Dot(R3Vector(np.X(), np.Y(), np.Z()));
+	
+	//to far plane
+	R3Vector nf = -nn;
+	double Df = -nf.Dot(R3Vector(fp.X(), fp.Y(), fp.Z()));
+	
+	//to right plane  
+	R3Vector nr = np + (camera->right*camera->xfov*camera->neardist) - p;
+	nr.Normalize();
+	nr.Cross(camera->up);
+	nr = -nr;
+	double Dr = -nr.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+	
+	//to left plane 
+	R3Vector nl = np + (-camera->right*camera->xfov*camera->neardist) - p; 
+	nl.Normalize();
+	nl.Cross(camera->up);
+	double Dl = -nl.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+	
+	//top plane
+	R3Vector nu = np + (camera->up*camera->yfov*camera->neardist) - p;
+	nu.Normalize();
+	nu.Cross(camera->right);
+	double Du = -nu.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+	
+	//bottom plane
+	R3Vector nd = np + (-camera->up*camera->yfov*camera->neardist) - p;
+	nd.Normalize();
+	nd.Cross(camera->right);
+	nd = -nd;    
+	double Dd = -nd.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+
+	//it is possible that a box with all corners outside the viewing 
+	//frustrum is still partly within the viewing frustrum.
+	//so, check that all points are on the wrong side of the SAME 
+	//plane.  Some shapes might be drawn whose bounding boxes are 
+	//completely outside of the viewing frustrum, but whatever. 
+
+	R3Box box = node->bbox;
+
+	//check near plane 
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nn) + Dn >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nn) + Dn >= 0); 
+	else { return 0; }
+
+	//far plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nf) + Df >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nf) + Df >= 0);
+	else { return 0; }
+
+	//right plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nr) + Dr >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nr) + Dr >= 0);
+	else { return 0; }
+
+	//left plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nl) + Dl >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nl) + Dl >= 0);
+	else { return 0; }
+
+	//up plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nu) + Du >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nu) + Du >= 0);
+	else { return 0; }
+
+	//down plane
+	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nd) + Dd >= 0); 
+	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nd) + Dd >= 0);
+	else { return 0; }
+
+	return 1;
+
+}
+
+void DrawNode(R3Scene *scene, R3Node *node, int minimap)
 {
   // Push transformation onto stack
   glPushMatrix();
@@ -501,13 +630,25 @@ void DrawNode(R3Scene *scene, R3Node *node)
 
   // Load material
   if (node->material) LoadMaterial(node->material);
+int inside;
+if (minimap) inside = 1;
+else inside = insideViewingFrustrum(scene, node); 
+//int inside = 1;
 
-  // Draw shape
-  if (node->shape) DrawShape(node->shape);
+	// Draw shape
+	if (node->shape) {
+		//only draw shape if its bounding box is within the viewing frustrum
+		if (inside) DrawShape(node->shape); 
+	}
 
-  // Draw children nodes
-  for (int i = 0; i < (int) node->children.size(); i++) 
-    DrawNode(scene, node->children[i]);
+	// Draw children nodes, but only if current node's bounding box 
+	// is within the viewing frustrum
+	if (inside) {
+                  
+		for (int i = 0; i < (int) node->children.size(); i++) {
+			DrawNode(scene, node->children[i], minimap);
+		}
+         }
 
   // Restore previous transformation
   glPopMatrix();
@@ -638,10 +779,10 @@ void DrawCamera(R3Scene *scene)
 
 
 
-void DrawScene(R3Scene *scene) 
+void DrawScene(R3Scene *scene, int minimap) 
 {
   // Draw nodes recursively
-  DrawNode(scene, scene->root);
+  DrawNode(scene, scene->root, minimap);
 }
 
 
@@ -1181,8 +1322,9 @@ void GLUTRedraw(void)
   player.health -= (2*numHits);
 
   /* Drawing minimap */
+  #ifndef cygwin
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Render to texture
-
+  
   // Clear the background of our window
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
 
@@ -1213,7 +1355,7 @@ void GLUTRedraw(void)
   // Draw scene surfaces
   if (show_faces) {
     glEnable(GL_LIGHTING);
-    DrawScene(scene);
+    DrawScene(scene, 1);
   }
 
   // Draw scene edges
@@ -1221,12 +1363,12 @@ void GLUTRedraw(void)
     glDisable(GL_LIGHTING);
     glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    DrawScene(scene);
+    DrawScene(scene, 1);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind
-
+	#endif
   /* End drawing minimap */
 
   // set the camera to the player's position
@@ -1266,7 +1408,7 @@ void GLUTRedraw(void)
   // Draw scene surfaces
   if (show_faces) {
     glEnable(GL_LIGHTING);
-    DrawScene(scene);
+    DrawScene(scene, 0);
   }
 
   // Draw scene edges
@@ -1274,7 +1416,7 @@ void GLUTRedraw(void)
     glDisable(GL_LIGHTING);
     glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    DrawScene(scene);
+    DrawScene(scene, 0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
@@ -1324,10 +1466,29 @@ void GLUTRedraw(void)
   }
 
   /* Sounds */
-
+  #ifndef cygwin
   // Listener
   alListener3f(AL_POSITION, camera.eye.X(), camera.eye.Y(), camera.eye.Y());
+  ALfloat orientation[] = {camera.towards.X(), camera.towards.Y(), camera.towards.Z(), camera.up.X(), camera.up.Y(), camera.up.Z()};
+  alListenerfv(AL_ORIENTATION, orientation);
 
+  // Hunters
+  for (unsigned int i = 0; i < hunter_list.size(); i++) {
+      alSource3f(source_list[i+1], AL_POSITION, hunter_list[i].getPosition().X(),
+              hunter_list[i].getPosition().Y(), hunter_list[i].getPosition().Z());
+
+      ALenum state;
+      alGetSourcei(source_list[i+1], AL_SOURCE_STATE, &state);
+      if ((hunter_list[i].getPosition() - player.getPosition()).Length() < 100) {
+          if (state != AL_PLAYING)
+              alSourcePlay(source_list[i+1]);
+      }
+      else {
+          if (state == AL_PLAYING)
+              alSourceStop(source_list[i+1]);
+      }
+  }
+  #endif
   /* End sounds */
 
   // Quit here so that can save image before exit
@@ -1709,7 +1870,7 @@ void GLUTCreateMenu(void)
 
 
 /***** Framebuffer Initialization Functions *****/
-
+#ifndef cygwin
 
 void initFrameBufferDepthBuffer(void) {  
     glGenRenderbuffersEXT(1, &fbo_depth); // Generate one render buffer and store the ID in fbo_depth  
@@ -1765,7 +1926,7 @@ void initFrameBuffer(void) {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind our frame buffer  
 }
 
-
+#endif
 /***** End Framebuffer Initialization Functions *****/
 
 
@@ -1805,8 +1966,10 @@ void GLUTInit(int *argc, char **argv)
   GLUTCreateMenu();
 
   // Initialize glew
+  #ifndef cygwin
   glewInit();
   initFrameBuffer();
+  #endif
 }
 
 
@@ -1980,6 +2143,8 @@ main(int argc, char **argv)
   hunter_list.push_back(hunter);
 
   /* Sounds */
+  #ifndef cygwin
+  // Note: must run from upper directory
 
   alutInit(&argc, argv);
 
@@ -1988,20 +2153,33 @@ main(int argc, char **argv)
   ALCcontext *context = alcCreateContext(device, NULL);
   alcMakeContextCurrent(context);
 
-  ALuint source, buffer;
-  alGenSources(1, &source);
-  buffer = alutCreateBufferFromFile("input/naturesounds.wav"); // Requires running from upper directory, not src
-
   // Ambient sound
-  alSourcef(source, AL_PITCH, 1);
-  alSourcef(source, AL_GAIN, 1);
-  alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
-  alSource3f(source, AL_POSITION, 0.0f, 0.0f, 0.0f);
-  alSourcei(source, AL_LOOPING, AL_TRUE);
-  alSourcei(source, AL_BUFFER, buffer);
+  ALuint source0, buffer0;
+  source_list.push_back(source0);
+  alGenSources(1, &source0);
+  buffer0 = alutCreateBufferFromFile("input/naturesounds.wav");
+  alSourcef(source0, AL_PITCH, 1);
+  alSourcef(source0, AL_GAIN, 1);
+  alSourcei(source0, AL_SOURCE_RELATIVE, AL_TRUE);
+  alSource3f(source0, AL_POSITION, 0.0f, 0.0f, 0.0f);
+  alSourcei(source0, AL_LOOPING, AL_TRUE);
+  alSourcei(source0, AL_BUFFER, buffer0);
+  alSourcePlay(source0);
 
-  alSourcePlay(source);
-
+  // Hunter sounds
+  for (unsigned int i = 0; i < hunter_list.size(); i++) {
+      ALuint source1, buffer1;
+      alGenSources(1, &source1);
+      source_list.push_back(source1);
+      buffer1 = alutCreateBufferFromFile("input/mars.wav");
+      alSourcef(source1, AL_PITCH, 1);
+      alSourcef(source1, AL_GAIN, 10);
+      alSource3f(source1, AL_POSITION, hunter_list[i].getPosition().X(),
+              hunter_list[i].getPosition().Y(), hunter_list[i].getPosition().Z());
+      alSourcei(source1, AL_LOOPING, AL_TRUE);
+      alSourcei(source1, AL_BUFFER, buffer1);
+  }
+  #endif
   /* End sounds */
 
   // Run GLUT interface
