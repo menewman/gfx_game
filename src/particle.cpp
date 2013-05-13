@@ -614,6 +614,19 @@ double countBulletHits(R3Scene *scene, R3Box bbox)
             continue;
         if (pos.Z() < bbox.ZMin() || pos.Z() > bbox.ZMax())
             continue;
+            
+        // NaN check
+        if (pos.X() != pos.X())
+            continue;
+        if (pos.Y() != pos.Y())
+            continue;
+        if (pos.Z() != pos.Z())
+            continue;
+            
+        fprintf(stderr, "hit scored!\n");
+        fprintf(stderr, "particle at (%f, %f, %f)\n", pos.X(), pos.Y(), pos.Z());
+        fprintf(stderr, "box min: %f, %f, %f\n", bbox.XMin(), bbox.YMin(), bbox.ZMin());
+        fprintf(stderr, "box max: %f, %f, %f\n\n", bbox.XMax(), bbox.YMax(), bbox.ZMax());
         hits++;
         delIndices.push_back(k);
     }

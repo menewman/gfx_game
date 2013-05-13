@@ -16,7 +16,8 @@ Hunter(double mass, double speed, R3Point position, R3Vector velocity, R3Particl
       speed(speed),
       position(position),
       velocity(velocity),
-      source(source)
+      source(source),
+      bbox(R3null_box)
 {
     icon.type = R3_CIRCLE_SHAPE;
     icon.circle = new R3Circle(position, 7.5, R3yaxis_vector);
@@ -52,18 +53,22 @@ updatePosition(double delta_time, R3Point playerPos, double bound) {
     // update the relevant shape parameters
     if (source.shape->type == R3_SPHERE_SHAPE) {
         source.shape->sphere->Reposition(position);
+        bbox = source.shape->sphere->BBox();
     }
     else if (source.shape->type == R3_BOX_SHAPE) {
         // translate along the vector between centroid and new position
         R3Vector toNew = position - source.shape->box->Centroid();
         toNew.SetY(0);
         source.shape->box->Translate(toNew);
+        bbox = R3Box(*source.shape->box);
     }
     else if (source.shape->type == R3_CYLINDER_SHAPE) {
         source.shape->cylinder->Reposition(position);
+        bbox = source.shape->cylinder->BBox();
     }
     else if (source.shape->type == R3_CONE_SHAPE) {
         source.shape->cone->Reposition(position);
+        bbox = source.shape->cone->BBox();
     }
     else if (source.shape->type == R3_MESH_SHAPE) {
         ; // ????? how do you move meshes anyway?
@@ -73,9 +78,11 @@ updatePosition(double delta_time, R3Point playerPos, double bound) {
         R3Vector toNew = position - source.shape->segment->Centroid();
         toNew.SetY(0);
         source.shape->segment->Translate(toNew);
+        bbox = source.shape->segment->BBox();
     }
     else if (source.shape->type == R3_CIRCLE_SHAPE) {
         source.shape->circle->Reposition(position);
+        bbox = source.shape->circle->BBox();
     }
     icon.circle->Reposition(position);
 }
@@ -97,10 +104,12 @@ shoot(R3Scene *scene, double current_time, double delta_time, R3Point playerPos)
     source.todo -= intpart;
      
     for (int i = 0; i < intpart; i++) {
+        //fprintf(stderr, "firing in direction (%f, %f, %f)\n", dist.X(), dist.Y(), dist.Z());
+        //fprintf(stderr, "playerPos: (%f, %f, %f)\n", playerPos.X(), playerPos.Y(), playerPos.Z());
         R3Point point; // point on surface
         R3Vector N;  // surface normal
         if (source.shape->type == R3_SPHERE_SHAPE) {
-            // select a random point on surface of sphere
+            // select a point on surface of sphere
             R3Sphere *sphere = source.shape->sphere;
             
             R3Vector toPlayer = playerPos - sphere->Center();

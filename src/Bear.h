@@ -1,4 +1,7 @@
 // class definition
+class Prey;
+class Hunter;
+
 class Bear {
 public:
     // constructor functions
@@ -19,7 +22,7 @@ public:
 
     // miscellaneous
     bool collides(R3Scene *scene, R3Node *node);
-    bool collides(R3Scene *scene);
+    bool collides(R3Scene *scene, vector<Prey>& prey_list, vector<Hunter>& hunter_list);
 
     // public variables
     double mass;

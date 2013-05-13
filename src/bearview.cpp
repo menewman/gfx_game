@@ -1115,7 +1115,7 @@ void GLUTRedraw(void)
       forward.Normalize();
       forward.SetY(0);
       player.position += forward*delta_time*player.speed*sprint;
-      if (player.collides(scene))
+      if (player.collides(scene, prey_list, hunter_list))
           player.position -= 2*forward*delta_time*player.speed*sprint;
   }
   if (move_backward) {
@@ -1123,7 +1123,7 @@ void GLUTRedraw(void)
       backward.Normalize();
       backward.SetY(0);
       player.position += backward*delta_time*player.speed*sprint;
-      if (player.collides(scene))
+      if (player.collides(scene, prey_list, hunter_list))
           player.position -= 2*backward*delta_time*player.speed*sprint;
   }
   if (move_left) {
@@ -1131,7 +1131,7 @@ void GLUTRedraw(void)
       left.Normalize();
       left.SetY(0);
       player.position += left*delta_time*player.speed*sprint;
-      if (player.collides(scene))
+      if (player.collides(scene, prey_list, hunter_list))
           player.position -= 2*left*delta_time*player.speed*sprint;
   }
   if (move_right) {
@@ -1139,7 +1139,7 @@ void GLUTRedraw(void)
       right.Normalize();
       right.SetY(0);
       player.position += right*delta_time*player.speed*sprint;
-      if (player.collides(scene))
+      if (player.collides(scene, prey_list, hunter_list))
           player.position -= 2*right*delta_time*player.speed*sprint;
   }
   if (move_jump) {
