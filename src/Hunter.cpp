@@ -6,6 +6,8 @@
 #include "Prey.h"
 #include "Hunter.h"
 #define DETECT_BOUND 150
+#define MIN_DIST 30
+#define MIN_DIST_TOLERANCE .5
 #define PI 3.14159265359
 
 Hunter::
@@ -36,11 +38,13 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
     R3Vector toPlayer = playerPos - position;
     toPlayer.SetY(0);
     
-    if (toPlayer.Length() > DETECT_BOUND)
+    // not moving if within tolerance of min_dist prevents the hunter from spazzing out moving back and forth across the line each update
+    if ((toPlayer.Length() > DETECT_BOUND) || (fabs(toPlayer.Length() - MIN_DIST) < MIN_DIST_TOLERANCE))
         return;
-    
+        
+    double moveToward = (toPlayer.Length() - MIN_DIST)/fabs(toPlayer.Length() - MIN_DIST);
     toPlayer.Normalize();
-    position += toPlayer*delta_time*speed;
+    position += toPlayer*delta_time*speed * moveToward;
         
     // keep from leaving map
     if (position.X() > bound)
