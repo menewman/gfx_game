@@ -17,6 +17,10 @@ public:
     virtual void setPosition(const R3Point& newPosition);
     virtual void updatePosition(double delta_time);
 
+    // miscellaneous
+    bool collides(R3Scene *scene, R3Node *node);
+    bool collides(R3Scene *scene);
+
     // public variables
     double mass;
     double speed;

@@ -1115,24 +1115,32 @@ void GLUTRedraw(void)
       forward.Normalize();
       forward.SetY(0);
       player.position += forward*delta_time*player.speed*sprint;
+      //if (player.collides(scene))
+          //player.position -= forward*delta_time*player.speed*sprint;
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
       player.position += backward*delta_time*player.speed*sprint;
+      //if (player.collides(scene))
+          //player.position -= backward*delta_time*player.speed*sprint;
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
       player.position += left*delta_time*player.speed*sprint;
+      //if (player.collides(scene))
+          //player.position -= left*delta_time*player.speed*sprint;
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
       player.position += right*delta_time*player.speed*sprint;
+      //if (player.collides(scene))
+          //player.position -= right*delta_time*player.speed*sprint;
   }
   if (move_jump) {
       if (player.position.Y() <= (player.height + TOLERANCE)) {
@@ -1541,7 +1549,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       
   case 'F':
   case 'f':
-      sprint = 1.5;
+      sprint = 2.5;
       break;
       
 /*
