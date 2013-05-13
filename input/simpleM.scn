@@ -1,4 +1,4 @@
-camera 0 5 67  0.0287 -0.2 -0.979  -0.004 0.979 -0.200  0.25  0.01 1000
+camera 0 16 67  0.0287 -0.2 -0.979  -0.004 0.979 -0.200  0.25  0.01 1000
 
 # 3 shades of brown
 material  0 0 0  .545 .271 .075    .545 .271 .075   0 0 0  0 0 0  10 1 0
@@ -10,21 +10,23 @@ material  0 0 0  0 0.2 0           0 0.2 0          0 0 0  0 0 0  10 1 0
 material  0 0 0  0 0 0       0 0 0      0 0 0  0 0 0  10 1 0
 # bright green
 material  0 0 0  0 0.8 0           0 0.8 0          0 0 0  0 0 0  10 1 0
+# checker
+material  0 0 0  0.5 0.5 0.5  0.5 0.5 0.5  0 0 0  0 0 0  10 1 checker.bmp
 
 # sky
 background 0.529 0.808 0.980
 
 # ground
-box    5    -500 -0.5 -500    500 0 500
+box    6    -500 -0.5 -500    500 0 500
 
 # sunlight
 dir_light  0.950 0.950 0.824  -0.3 -0.7 0
 
 # hunter sphere
-#particle_source
-  #0.1 0 0 0 5 4
-  #0.5 100 0.05
-  #sphere 10 3 10 2
+particle_source
+  0.1 0 0 0 5 4
+  0.5 100 0.05
+  sphere 10 3 10 2
 
 cylinder 0    0 10 0    0.5 20
 sphere   3    0 20 0    5

@@ -1,6 +1,9 @@
 // source file for the Bear class
 
 #include "R3/R3.h"
+#include "R3Scene.h"
+#include "Prey.h"
+#include "Hunter.h"
 #include "Bear.h"
 #define TOLERANCE 0.00001
 
@@ -18,7 +21,7 @@ Bear(double mass, double speed, double height, R3Vector velocity, R3Point positi
       position(position),
       health(100),
       stamina(100),
-      bbox(R3Box(position.X()-1.5, 0, position.Z()-1.5, position.X()+1.5, height+1, position.Z()+1.5))
+      bbox(R3Box(position.X()-1.5, 0.5, position.Z()-1.5, position.X()+1.5, height+1, position.Z()+1.5))
 {
 }
 
@@ -37,8 +40,6 @@ setPosition(const R3Point& newPosition)
 void Bear::
 updatePosition(double delta_time)
 {
-    if (position.Y() - height < TOLERANCE)
-        return;
     R3Vector grav = R3Vector(0,-15,0);
     R3Vector f_grav = mass * grav;
     R3Vector accel = f_grav / mass;
@@ -48,4 +49,44 @@ updatePosition(double delta_time)
         position.SetY(height);
         velocity.SetY(0);
     }
+}
+
+// recursive method, returns true if bear collides with
+//     node or any of its children
+bool Bear::
+collides(R3Scene *scene, R3Node *node)
+{
+    if (bbox.intersects(node->bbox)) {
+        return true;
+    }
+    for (unsigned int i = 0; i < node->children.size(); i++) {
+        if (collides(scene, node->children[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// returns true iff bear collides with a node in the scene
+bool Bear::
+collides(R3Scene *scene, vector<Prey>& prey_list, vector<Hunter>& hunter_list)
+{
+    // recurse through the scene's nodes
+    R3Node *root = scene->Root();
+    for (unsigned int i = 0; i < root->children.size(); i++) {
+        if (collides(scene, root->children[i])) {
+            return true;
+        }
+    }
+    for (unsigned int i = 0; i < prey_list.size(); i++) {
+        // check prey bounding box
+        if (bbox.intersects(prey_list[i].bbox))
+            return true;
+    }
+    for (unsigned int i = 0; i < hunter_list.size(); i++) {
+        // check hunter bounding box
+        if (bbox.intersects(hunter_list[i].bbox))
+            return true;
+    }
+    return false;
 }
