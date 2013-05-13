@@ -51,6 +51,7 @@ static R3Camera camera;
 static Bear player;
 static vector<Prey> prey_list;
 static vector<Hunter> hunter_list;
+static vector<ALuint> source_list;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -1319,6 +1320,25 @@ void GLUTRedraw(void)
 
   // Listener
   alListener3f(AL_POSITION, camera.eye.X(), camera.eye.Y(), camera.eye.Y());
+  ALfloat orientation[] = {camera.towards.X(), camera.towards.Y(), camera.towards.Z(), camera.up.X(), camera.up.Y(), camera.up.Z()};
+  alListenerfv(AL_ORIENTATION, orientation);
+
+  // Hunters
+  for (unsigned int i = 0; i < hunter_list.size(); i++) {
+      alSource3f(source_list[i+1], AL_POSITION, hunter_list[i].getPosition().X(),
+              hunter_list[i].getPosition().Y(), hunter_list[i].getPosition().Z());
+
+      ALenum state;
+      alGetSourcei(source_list[i+1], AL_SOURCE_STATE, &state);
+      if ((hunter_list[i].getPosition() - player.getPosition()).Length() < 100) {
+          if (state != AL_PLAYING)
+              alSourcePlay(source_list[i+1]);
+      }
+      else {
+          if (state == AL_PLAYING)
+              alSourceStop(source_list[i+1]);
+      }
+  }
 
   /* End sounds */
 
@@ -1959,10 +1979,12 @@ main(int argc, char **argv)
   hsource->material = bullet_material;
   
   // initialize a hunter
-  Hunter hunter = Hunter(100, 5, R3Point(10, 3, 10), R3Vector(0,0,0), *hsource);
+  Hunter hunter = Hunter(100, 5, R3Point(15, 3, 15), R3Vector(0,0,0), *hsource);
   hunter_list.push_back(hunter);
 
   /* Sounds */
+
+  // Note: must run from upper directory
 
   alutInit(&argc, argv);
 
@@ -1971,19 +1993,32 @@ main(int argc, char **argv)
   ALCcontext *context = alcCreateContext(device, NULL);
   alcMakeContextCurrent(context);
 
-  ALuint source, buffer;
-  alGenSources(1, &source);
-  buffer = alutCreateBufferFromFile("input/naturesounds.wav"); // Requires running from upper directory, not src
-
   // Ambient sound
-  alSourcef(source, AL_PITCH, 1);
-  alSourcef(source, AL_GAIN, 1);
-  alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
-  alSource3f(source, AL_POSITION, 0.0f, 0.0f, 0.0f);
-  alSourcei(source, AL_LOOPING, AL_TRUE);
-  alSourcei(source, AL_BUFFER, buffer);
+  ALuint source0, buffer0;
+  source_list.push_back(source0);
+  alGenSources(1, &source0);
+  buffer0 = alutCreateBufferFromFile("input/naturesounds.wav");
+  alSourcef(source0, AL_PITCH, 1);
+  alSourcef(source0, AL_GAIN, 1);
+  alSourcei(source0, AL_SOURCE_RELATIVE, AL_TRUE);
+  alSource3f(source0, AL_POSITION, 0.0f, 0.0f, 0.0f);
+  alSourcei(source0, AL_LOOPING, AL_TRUE);
+  alSourcei(source0, AL_BUFFER, buffer0);
+  alSourcePlay(source0);
 
-  alSourcePlay(source);
+  // Hunter sounds
+  for (unsigned int i = 0; i < hunter_list.size(); i++) {
+      ALuint source1, buffer1;
+      alGenSources(1, &source1);
+      source_list.push_back(source1);
+      buffer1 = alutCreateBufferFromFile("input/mars.wav");
+      alSourcef(source1, AL_PITCH, 1);
+      alSourcef(source1, AL_GAIN, 10);
+      alSource3f(source1, AL_POSITION, hunter_list[i].getPosition().X(),
+              hunter_list[i].getPosition().Y(), hunter_list[i].getPosition().Z());
+      alSourcei(source1, AL_LOOPING, AL_TRUE);
+      alSourcei(source1, AL_BUFFER, buffer1);
+  }
 
   /* End sounds */
 
