@@ -10,11 +10,17 @@
 # include <windows.h>
 # include <GL/glew.h>
 # include <GL/glut.h>
+# include <AL/al.h>
+# include <AL/alc.h>
+# include <AL/alut.h>
 #elif defined(__APPLE__)
 # include <GL/glew.h>
 # include <GLUT/glut.h>
 #else 
 # include <GL/glew.h>
 # include <GL/glut.h>
+# include <AL/al.h>
+# include <AL/alc.h>
+# include <AL/alut.h>
 #endif
 

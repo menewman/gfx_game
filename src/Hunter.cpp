@@ -179,7 +179,11 @@ shoot(R3Scene *scene, double current_time, double delta_time, R3Point playerPos)
          particle->elasticity = source.elasticity;
          particle->lifetime = source.lifetime;
          particle->birthday = current_time;
-         particle->material = source.material;   
+         particle->material = source.material; 
+         particle->bullet = true;
+         
+         // for now, no y-component to velocity
+         particle->velocity.SetY(0);  
 
          // Add particle to scene
          scene->particles.push_back(particle);

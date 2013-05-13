@@ -13,11 +13,17 @@
 #include "Bear.h"
 #include "Prey.h"
 #include "Hunter.h"
+#include <errno.h>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 #define R3Rgb R2Pixel
 #define PI 3.14159265
 #define TOLERANCE 0.0001
 #define BOUND 500
+#define NUM_BUFFERS 1
+#define NUM_SOURCES 1
+#define NUM_ENVIRONMENTS 1
 
 ////////////////////////////////////////////////////////////
 // GLOBAL CONSTANTS
@@ -64,6 +70,7 @@ static int move_right = 0;
 static int move_jump = 0;
 static int turn_left = 0;
 static int turn_right = 0;
+static double sprint = 1;
 static int menu = 0;
 
 
@@ -1079,9 +1086,6 @@ void GLUTRedraw(void)
 
   // time passed since starting
   double delta_time = current_time - previous_time;
-  
-  // update y-position
-  player.updatePosition(delta_time);
 
   if (save_video) { // in video mode, time that passes only depends on frame rate
     delta_time = VIDEO_FRAME_DELAY;    
@@ -1101,39 +1105,37 @@ void GLUTRedraw(void)
   
   // move or turn if user pressed keys
   // TODO - offload this into a separate function?
+  R3Point oldPosition = R3Point(player.position);
+  
+  // update y-position
+  player.updatePosition(delta_time);
+  
   if (move_forward) {
       R3Vector forward = R3Vector(camera.towards);
       forward.Normalize();
       forward.SetY(0);
-      //player.setPosition(player.getPosition() + forward*delta_time * player.getSpeed());
-      player.position += forward*delta_time*player.speed;
+      player.position += forward*delta_time*player.speed*sprint;
   }
   if (move_backward) {
       R3Vector backward = R3Vector(-camera.towards);
       backward.Normalize();
       backward.SetY(0);
-      //player.setPosition(player.getPosition() + backward*delta_time * player.getSpeed());
-      player.position += backward*delta_time*player.speed;
+      player.position += backward*delta_time*player.speed*sprint;
   }
   if (move_left) {
       R3Vector left = R3Vector(-camera.right);
       left.Normalize();
       left.SetY(0);
-      //player.setPosition(player.getPosition() + left*delta_time * player.getSpeed());
-      player.position += left*delta_time*player.speed;
+      player.position += left*delta_time*player.speed*sprint;
   }
   if (move_right) {
       R3Vector right = R3Vector(camera.right);
       right.Normalize();
       right.SetY(0);
-      //player.setPosition(player.getPosition() + right*delta_time * player.getSpeed());
-      player.position += right*delta_time*player.speed;
+      player.position += right*delta_time*player.speed*sprint;
   }
   if (move_jump) {
-      //if (player.getPosition().Y() <= (player.getHeight() + TOLERANCE)) {
       if (player.position.Y() <= (player.height + TOLERANCE)) {
-          //R3Vector velo = R3Vector(player.velocity);
-          //velo += R3Vector(0,10,0); // magic number
           player.velocity += R3Vector(0,10,0);
       }
       move_jump = 0;
@@ -1159,6 +1161,16 @@ void GLUTRedraw(void)
       player.position.SetZ(BOUND);
   else if (player.position.Z() < -BOUND)
       player.position.SetZ(-BOUND);
+      
+  // update the player's bbox
+  //fprintf(stderr, "player:  %f, %f, %f\n", player.position.X(), player.position.Y(), player.position.Z());
+  //fprintf(stderr, "box min: %f, %f, %f\n", player.bbox.XMin(), player.bbox.YMin(), player.bbox.ZMin());
+  //fprintf(stderr, "box max: %f, %f, %f\n", player.bbox.XMax(), player.bbox.YMax(), player.bbox.ZMax());
+  player.bbox.Translate(player.position - oldPosition);
+  
+  // check for bullet hits
+  int numHits = countBulletHits(scene, player.bbox);
+  player.health -= (2*numHits);
 
   /* Drawing minimap */
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Render to texture
@@ -1303,17 +1315,23 @@ void GLUTRedraw(void)
     }
   }
 
+  /* Sounds */
+
+  // Listener
+  alListener3f(AL_POSITION, camera.eye.X(), camera.eye.Y(), camera.eye.Y());
+
+  /* End sounds */
+
   // Quit here so that can save image before exit
   if (quit) {
     if (output_image_name) GLUTSaveImage(output_image_name);
     GLUTStop();
   }
 
-	previous_time = current_time;
+  previous_time = current_time;
   // Swap buffers 
   glutSwapBuffers();
 }    
-
 
 void GLUTMotion(int x, int y)
 {
@@ -1370,8 +1388,6 @@ void GLUTMotion(int x, int y)
   GLUTmouse[0] = x;
   GLUTmouse[1] = y;
 }
-
-
 
 void GLUTMouse(int button, int state, int x, int y)
 {
@@ -1461,11 +1477,13 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     show_edges = !show_edges;
     break;
 */
+/*
   case 'F':
   case 'f':
     show_faces = !show_faces;
     break;
-
+*/
+/*
   case 'L':
   case 'l':
     show_lights = !show_lights;
@@ -1480,7 +1498,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   case 'r':
     show_particle_springs = !show_particle_springs;
     break;
-
+*/
 /*
   case 'S':
   case 's':
@@ -1519,6 +1537,11 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   case 'E':
   case 'e':
       turn_right = 1;
+      break;
+      
+  case 'F':
+  case 'f':
+      sprint = 1.5;
       break;
       
 /*
@@ -1586,6 +1609,11 @@ void GLUTKeyboardUp(unsigned char key, int x, int y)
   case 'E':
   case 'e':
       turn_right = 0;
+      break;
+      
+  case 'F':
+  case 'f':
+      sprint = 1;
       break;
 	  
 /*  
@@ -1878,8 +1906,8 @@ main(int argc, char **argv)
   double speed = 20;
   double height = 5;
   R3Vector init_velocity = R3Vector(0, 0, 0);
+  camera.eye.SetY(height);
   player = Bear(mass, speed, height, init_velocity, R3Point(camera.eye));
-  camera.eye.SetY(player.getHeight());
   
   // initialize prey shapes
   R3Shape *shape1 = new R3Shape();
@@ -1908,8 +1936,8 @@ main(int argc, char **argv)
   
   hsource->shape = hshape;
   hsource->rate = 0.5;
-  hsource->velocity = 100;
-  hsource->angle_cutoff = 0.05;
+  hsource->velocity = 40;
+  hsource->angle_cutoff = 0.00005;
   hsource->mass = 0.01;
   hsource->fixed = false;
   hsource->drag = 0;
@@ -1934,9 +1962,41 @@ main(int argc, char **argv)
   Hunter hunter = Hunter(100, 5, R3Point(10, 3, 10), R3Vector(0,0,0), *hsource);
   hunter_list.push_back(hunter);
 
+  /* Sounds */
+
+  alutInit(&argc, argv);
+
+  // Device and context
+  ALCdevice *device = alcOpenDevice(NULL);
+  ALCcontext *context = alcCreateContext(device, NULL);
+  alcMakeContextCurrent(context);
+
+  ALuint source, buffer;
+  alGenSources(1, &source);
+  buffer = alutCreateBufferFromFile("input/naturesounds.wav"); // Requires running from upper directory, not src
+
+  // Ambient sound
+  alSourcef(source, AL_PITCH, 1);
+  alSourcef(source, AL_GAIN, 1);
+  alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
+  alSource3f(source, AL_POSITION, 0.0f, 0.0f, 0.0f);
+  alSourcei(source, AL_LOOPING, AL_TRUE);
+  alSourcei(source, AL_BUFFER, buffer);
+
+  alSourcePlay(source);
+
+  /* End sounds */
+
   // Run GLUT interface
   GLUTMainLoop();
-  
+
+  /*
+  alDeleteSources(1, &source);
+  alDeleteBuffers(1, &buffer);
+  alcDestroyContext(context);
+  alcCloseDevice(device);
+  */
+
   delete shape1;
   delete shape2;
   delete hshape;

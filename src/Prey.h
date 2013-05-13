@@ -22,6 +22,7 @@ public:
     R3Vector velocity;
     R3Shape shape;
     R3Shape icon;
+    R3Box bbox;
 };
 
 // Inline functions

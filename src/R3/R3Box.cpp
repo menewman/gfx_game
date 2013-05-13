@@ -5,7 +5,8 @@
 // Include files 
 
 #include "R3.h"
-
+#include <stdlib.h>
+#define TOLERANCE 0.000001
 
 
 // Public variables 
@@ -271,7 +272,113 @@ Reset(const R3Point& min, const R3Point& max)
   maxpt = max;
 }
 
+// utility function
+int sign(double x) {
+    if (x > 0) return 1;
+    if (x < 0) return -1;
+    return 0;
+}
 
+bool R3Box::
+intersects(const R3Box& box)
+{
+    vector<R3Plane> this_faces;
+    vector<R3Plane> that_faces;
+    vector<R3Point> this_vertices;
+    vector<R3Point> that_vertices;
+    
+    R3Point xyz = R3Point(box.XMin(), box.YMin(), box.ZMin());
+    R3Point Xyz = R3Point(box.XMax(), box.YMin(), box.ZMin());
+    R3Point xYz = R3Point(box.XMin(), box.YMax(), box.ZMin());
+    R3Point xyZ = R3Point(box.XMin(), box.YMin(), box.ZMax());
+    R3Point XYz = R3Point(box.XMax(), box.YMax(), box.ZMin());
+    R3Point XyZ = R3Point(box.XMax(), box.YMin(), box.ZMax());
+    R3Point xYZ = R3Point(box.XMin(), box.YMax(), box.ZMax());
+    R3Point XYZ = R3Point(box.XMax(), box.YMax(), box.ZMax());
+    
+    that_vertices.push_back(xyz);
+    that_vertices.push_back(Xyz);
+    that_vertices.push_back(xYz);
+    that_vertices.push_back(xyZ);
+    that_vertices.push_back(XYz);
+    that_vertices.push_back(XyZ);
+    that_vertices.push_back(xYZ);
+    that_vertices.push_back(XYZ);
+    
+    that_faces.push_back(R3Plane(xyz, Xyz, xyZ));
+    that_faces.push_back(R3Plane(xYz, XYz, xYZ));
+    that_faces.push_back(R3Plane(xyz, Xyz, xYz));
+    that_faces.push_back(R3Plane(xyZ, XyZ, xYZ));
+    that_faces.push_back(R3Plane(xyz, xYz, xyZ));
+    that_faces.push_back(R3Plane(Xyz, XYz, XyZ));
+    
+    xyz = R3Point(XMin(), YMin(), ZMin());
+    Xyz = R3Point(XMax(), YMin(), ZMin());
+    xYz = R3Point(XMin(), YMax(), ZMin());
+    xyZ = R3Point(XMin(), YMin(), ZMax());
+    XYz = R3Point(XMax(), YMax(), ZMin());
+    XyZ = R3Point(XMax(), YMin(), ZMax());
+    xYZ = R3Point(XMin(), YMax(), ZMax());
+    XYZ = R3Point(XMax(), YMax(), ZMax());
+    
+    this_vertices.push_back(xyz);
+    this_vertices.push_back(Xyz);
+    this_vertices.push_back(xYz);
+    this_vertices.push_back(xyZ);
+    this_vertices.push_back(XYz);
+    this_vertices.push_back(XyZ);
+    this_vertices.push_back(xYZ);
+    this_vertices.push_back(XYZ);
+    
+    this_faces.push_back(R3Plane(xyz, Xyz, xyZ));
+    this_faces.push_back(R3Plane(xYz, XYz, xYZ));
+    this_faces.push_back(R3Plane(xyz, Xyz, xYz));
+    this_faces.push_back(R3Plane(xyZ, XyZ, xYZ));
+    this_faces.push_back(R3Plane(xyz, xYz, xyZ));
+    this_faces.push_back(R3Plane(Xyz, XYz, XyZ));
+    
+    // iterate over each face of both boxes
+    int not_same_count = 0;
+    for (unsigned int i = 0; i < this_faces.size(); i++) {
+        int dot_sign = 0;
+        bool same_side = true;
+        for (unsigned int j = 0; j < that_vertices.size(); j++) {
+            R3Point planepoint = R3Point(that_vertices[j]);
+            planepoint.Project(this_faces[i]);
+            R3Vector v = that_vertices[j] - planepoint;
+            double dotProduct = v.Dot(this_faces[i].Normal());
+            //if (abs(dotProduct) < TOLERANCE)
+                //same_side = false;
+            if (j == 0)
+                dot_sign = sign(dotProduct);
+            else {
+                if (sign(dotProduct) != dot_sign)
+                    same_side = false;
+            }
+        }
+        if (!same_side)
+            not_same_count++;
+            
+        same_side = true;
+        for (unsigned int j = 0; j < this_vertices.size(); j++) {
+            R3Point planepoint = R3Point(this_vertices[j]);
+            planepoint.Project(that_faces[i]);
+            R3Vector v = this_vertices[j] - planepoint;
+            double dotProduct = v.Dot(that_faces[i].Normal());
+            //if (abs(dotProduct) < TOLERANCE)
+                //same_side = false;
+            if (j == 0)
+                dot_sign = sign(dotProduct);
+            else {
+                if (sign(dotProduct) != dot_sign)
+                    same_side = false;
+            }
+        }
+        if (!same_side)
+            not_same_count++;
+    }
+    return (not_same_count >= 2);
+}
 
 void R3Box::
 Draw(void) const
