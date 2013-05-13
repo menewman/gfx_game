@@ -494,9 +494,9 @@ void LoadLights(R3Scene *scene)
 }
 
 int insideViewingFrustrum(R3Scene *scene, R3Node *node) {
-       // find planes that define viewing frustrum
+    // find planes that define viewing frustrum
     // we need a normal and a point to define each plane.
-        R3Camera *camera = &scene->camera;
+    R3Camera *camera = &scene->camera;
 
     R3Point p = camera->eye;
     R3Point np = p + camera->towards*camera->neardist;
