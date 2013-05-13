@@ -86,7 +86,7 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
         source.shape->circle->Reposition(position);
         bbox = source.shape->circle->BBox();
     }
-    /*
+    
     if (collides(scene, prey_list, hunter_list, bearBBox)) {
         position -= -1.5*toPlayer*delta_time*speed;
         // update the relevant shape parameters
@@ -124,7 +124,7 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
             bbox = source.shape->circle->BBox();
         }
     }
-    */
+    
     icon.circle->Reposition(position);
 }
 

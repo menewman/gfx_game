@@ -1,6 +1,6 @@
 // Source file for the scene file viewer
 
-//# define cygwin         // comment this line out to compile in cygwin without glew and openAL
+//# define cygwin  // comment this line out to compile in cygwin without glew and openAL
 
 
 ////////////////////////////////////////////////////////////
@@ -8,9 +8,9 @@
 ////////////////////////////////////////////////////////////
 
 # ifndef cygwin
-#	include "cos426_opengl.h"
+#   include "cos426_opengl.h"
 # else
-# 	include "cos426_opengl_cyg.h"
+#   include "cos426_opengl_cyg.h"
 # endif
 
 #include "R3/R3.h"
@@ -48,8 +48,6 @@ static char *output_image_name = NULL;
 static const char *video_prefix = "./video-frames/";
 static int integration_type = EULER_INTEGRATION;
 
-
-
 // Display variables
 
 static R3Scene *scene = NULL;
@@ -82,7 +80,6 @@ static int turn_right = 0;
 static double sprint = 1;
 static int menu = 0;
 
-
 // GLUT variables 
 
 static int GLUTwindow = 0;
@@ -92,7 +89,6 @@ static int GLUTmouse[2] = { 0, 0 };
 static int GLUTbutton[3] = { 0, 0, 0 };
 static int GLUTmodifiers = 0;
 
-
 // Framebuffer parameters
 
 unsigned int fbo; // The frame buffer object  
@@ -100,8 +96,6 @@ unsigned int fbo_depth; // The depth buffer for the frame buffer object
 unsigned int fbo_texture; // The texture object to write our frame buffer object to
 int window_width = 500; // The width of our window  
 int window_height = 500; // The height of our window
-
-
 
 // GLUT command list
 
@@ -118,7 +112,6 @@ enum {
   SAVE_VIDEO_COMMAND,
   QUIT_COMMAND,
 };
-
 
 
 ////////////////////////////////////////////////////////////
@@ -232,10 +225,10 @@ void DrawTextBox()
         glColor3d(0, 0, 0);
         glBegin(GL_LINES);
         glVertex2f(150, YSize - 50);
-        glVertex2f(7, YSize - 50);	
+        glVertex2f(7, YSize - 50);  
         glEnd();
     }
-    glEnable(GL_DEPTH_TEST);	
+    glEnable(GL_DEPTH_TEST);    
 }
 
 
@@ -364,20 +357,20 @@ void LoadMaterial(R3Material *material)
 
 void LoadCamera(R3Camera *camera)
 {
-  // Set projection transformation
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 0.01, 10000);
+    // Set projection transformation
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 0.01, 10000);
 
-  // Set camera transformation
-  R3Vector t = -(camera->towards);
-  R3Vector& u = camera->up;
-  R3Vector& r = camera->right;
-  GLdouble camera_matrix[16] = { r[0], u[0], t[0], 0, r[1], u[1], t[1], 0, r[2], u[2], t[2], 0, 0, 0, 0, 1 };
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glMultMatrixd(camera_matrix);
-  glTranslated(-(camera->eye[0]), -(camera->eye[1]), -(camera->eye[2]));
+    // Set camera transformation
+    R3Vector t = -(camera->towards);
+    R3Vector& u = camera->up;
+    R3Vector& r = camera->right;
+    GLdouble camera_matrix[16] = { r[0], u[0], t[0], 0, r[1], u[1], t[1], 0, r[2], u[2], t[2], 0, 0, 0, 0, 1 };
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMultMatrixd(camera_matrix);
+    glTranslated(-(camera->eye[0]), -(camera->eye[1]), -(camera->eye[2]));
 }
 
 
@@ -500,166 +493,166 @@ void LoadLights(R3Scene *scene)
   }
 }
 
-
 int insideViewingFrustrum(R3Scene *scene, R3Node *node) {
        // find planes that define viewing frustrum
-	// we need a normal and a point to define each plane.
+    // we need a normal and a point to define each plane.
         R3Camera *camera = &scene->camera;
 
-	R3Point p = camera->eye;
-	R3Point np = p + camera->towards*camera->neardist;
-	R3Point fp = p + camera->towards*camera->fardist;
+    R3Point p = camera->eye;
+    R3Point np = p + camera->towards*camera->neardist;
+    R3Point fp = p + camera->towards*camera->fardist;
 
-	//normal to near plane
-	R3Vector nn = camera->towards;
-	double Dn = -nn.Dot(R3Vector(np.X(), np.Y(), np.Z()));
-	
-	//to far plane
-	R3Vector nf = -nn;
-	double Df = -nf.Dot(R3Vector(fp.X(), fp.Y(), fp.Z()));
-	
-	//to right plane  
-	R3Vector nr = np + (camera->right*camera->xfov*camera->neardist) - p;
-	nr.Normalize();
-	nr.Cross(camera->up);
-	nr = -nr;
-	double Dr = -nr.Dot(R3Vector(p.X(), p.Y(), p.Z()));
-	
-	//to left plane 
-	R3Vector nl = np + (-camera->right*camera->xfov*camera->neardist) - p; 
-	nl.Normalize();
-	nl.Cross(camera->up);
-	double Dl = -nl.Dot(R3Vector(p.X(), p.Y(), p.Z()));
-	
-	//top plane
-	R3Vector nu = np + (camera->up*camera->yfov*camera->neardist) - p;
-	nu.Normalize();
-	nu.Cross(camera->right);
-	double Du = -nu.Dot(R3Vector(p.X(), p.Y(), p.Z()));
-	
-	//bottom plane
-	R3Vector nd = np + (-camera->up*camera->yfov*camera->neardist) - p;
-	nd.Normalize();
-	nd.Cross(camera->right);
-	nd = -nd;    
-	double Dd = -nd.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+    //normal to near plane
+    R3Vector nn = camera->towards;
+    double Dn = -nn.Dot(R3Vector(np.X(), np.Y(), np.Z()));
+    
+    //to far plane
+    R3Vector nf = -nn;
+    double Df = -nf.Dot(R3Vector(fp.X(), fp.Y(), fp.Z()));
+    
+    //to right plane  
+    R3Vector nr = np + (camera->right*camera->xfov*camera->neardist) - p;
+    nr.Normalize();
+    nr.Cross(camera->up);
+    nr = -nr;
+    double Dr = -nr.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+    
+    //to left plane 
+    R3Vector nl = np + (-camera->right*camera->xfov*camera->neardist) - p; 
+    nl.Normalize();
+    nl.Cross(camera->up);
+    double Dl = -nl.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+    
+    //top plane
+    R3Vector nu = np + (camera->up*camera->yfov*camera->neardist) - p;
+    nu.Normalize();
+    nu.Cross(camera->right);
+    double Du = -nu.Dot(R3Vector(p.X(), p.Y(), p.Z()));
+    
+    //bottom plane
+    R3Vector nd = np + (-camera->up*camera->yfov*camera->neardist) - p;
+    nd.Normalize();
+    nd.Cross(camera->right);
+    nd = -nd;    
+    double Dd = -nd.Dot(R3Vector(p.X(), p.Y(), p.Z()));
 
-	//it is possible that a box with all corners outside the viewing 
-	//frustrum is still partly within the viewing frustrum.
-	//so, check that all points are on the wrong side of the SAME 
-	//plane.  Some shapes might be drawn whose bounding boxes are 
-	//completely outside of the viewing frustrum, but whatever. 
+    //it is possible that a box with all corners outside the viewing 
+    //frustrum is still partly within the viewing frustrum.
+    //so, check that all points are on the wrong side of the SAME 
+    //plane.  Some shapes might be drawn whose bounding boxes are 
+    //completely outside of the viewing frustrum, but whatever. 
 
-	R3Box box = node->bbox;
+    R3Box box = node->bbox;
 
-	//check near plane 
-	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nn) + Dn >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nn) + Dn >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nn) + Dn >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nn) + Dn >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nn) + Dn >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nn) + Dn >= 0); 
-	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nn) + Dn >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nn) + Dn >= 0); 
-	else { return 0; }
+    //check near plane 
+    if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nn) + Dn >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nn) + Dn >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nn) + Dn >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nn) + Dn >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nn) + Dn >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nn) + Dn >= 0); 
+    else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nn) + Dn >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nn) + Dn >= 0); 
+    else { return 0; }
 
-	//far plane
-	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nf) + Df >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nf) + Df >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nf) + Df >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nf) + Df >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nf) + Df >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nf) + Df >= 0); 
-	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nf) + Df >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nf) + Df >= 0);
-	else { return 0; }
+    //far plane
+    if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nf) + Df >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nf) + Df >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nf) + Df >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nf) + Df >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nf) + Df >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nf) + Df >= 0); 
+    else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nf) + Df >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nf) + Df >= 0);
+    else { return 0; }
 
-	//right plane
-	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nr) + Dr >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nr) + Dr >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nr) + Dr >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nr) + Dr >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nr) + Dr >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nr) + Dr >= 0); 
-	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nr) + Dr >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nr) + Dr >= 0);
-	else { return 0; }
+    //right plane
+    if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nr) + Dr >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nr) + Dr >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nr) + Dr >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nr) + Dr >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nr) + Dr >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nr) + Dr >= 0); 
+    else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nr) + Dr >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nr) + Dr >= 0);
+    else { return 0; }
 
-	//left plane
-	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nl) + Dl >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nl) + Dl >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nl) + Dl >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nl) + Dl >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nl) + Dl >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nl) + Dl >= 0); 
-	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nl) + Dl >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nl) + Dl >= 0);
-	else { return 0; }
+    //left plane
+    if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nl) + Dl >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nl) + Dl >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nl) + Dl >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nl) + Dl >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nl) + Dl >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nl) + Dl >= 0); 
+    else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nl) + Dl >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nl) + Dl >= 0);
+    else { return 0; }
 
-	//up plane
-	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nu) + Du >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nu) + Du >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nu) + Du >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nu) + Du >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nu) + Du >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nu) + Du >= 0); 
-	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nu) + Du >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nu) + Du >= 0);
-	else { return 0; }
+    //up plane
+    if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nu) + Du >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nu) + Du >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nu) + Du >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nu) + Du >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nu) + Du >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nu) + Du >= 0); 
+    else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nu) + Du >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nu) + Du >= 0);
+    else { return 0; }
 
-	//down plane
-	if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nd) + Dd >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nd) + Dd >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nd) + Dd >= 0); 
-	else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nd) + Dd >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nd) + Dd >= 0); 
-	else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nd) + Dd >= 0); 
-	else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nd) + Dd >= 0); 
-	else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nd) + Dd >= 0);
-	else { return 0; }
+    //down plane
+    if (R3Vector(box.XMin(), box.YMin(), box.ZMin()).Dot(nd) + Dd >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMin()).Dot(nd) + Dd >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMin()).Dot(nd) + Dd >= 0); 
+    else if (R3Vector(box.XMax(), box.YMax(), box.ZMax()).Dot(nd) + Dd >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMin()).Dot(nd) + Dd >= 0); 
+    else if (R3Vector(box.XMin(), box.YMax(), box.ZMax()).Dot(nd) + Dd >= 0); 
+    else if (R3Vector(box.XMin(), box.YMin(), box.ZMax()).Dot(nd) + Dd >= 0); 
+    else if (R3Vector(box.XMax(), box.YMin(), box.ZMax()).Dot(nd) + Dd >= 0);
+    else { return 0; }
 
-	return 1;
+    return 1;
 
 }
 
 void DrawNode(R3Scene *scene, R3Node *node, int minimap)
 {
-  // Push transformation onto stack
-  glPushMatrix();
-  LoadMatrix(&node->transformation);
+    // Push transformation onto stack
+    glPushMatrix();
+    LoadMatrix(&node->transformation);
 
-  // Load material
-  if (node->material) LoadMaterial(node->material);
-int inside;
-if (minimap) inside = 1;
-else inside = insideViewingFrustrum(scene, node); 
-//int inside = 1;
+    // Load material
+    if (node->material) LoadMaterial(node->material);
+    int inside;
+    if (minimap)
+        inside = 1;
+    else
+        inside = insideViewingFrustrum(scene, node); 
+    inside = 1; // DEBUG -- disabled frustrum culling until it works
 
-	// Draw shape
-	if (node->shape) {
-		//only draw shape if its bounding box is within the viewing frustrum
-		if (inside) DrawShape(node->shape); 
-	}
+    // Draw shape
+    if (node->shape) {
+        //only draw shape if its bounding box is within the viewing frustrum
+        if (inside) DrawShape(node->shape); 
+    }
 
-	// Draw children nodes, but only if current node's bounding box 
-	// is within the viewing frustrum
-	if (inside) {
-                  
-		for (int i = 0; i < (int) node->children.size(); i++) {
-			DrawNode(scene, node->children[i], minimap);
-		}
-         }
+    // Draw children nodes, but only if current node's bounding box 
+    // is within the viewing frustrum
+    if (inside) {           
+        for (int i = 0; i < (int) node->children.size(); i++) {
+            DrawNode(scene, node->children[i], minimap);
+        }
+    }
 
-  // Restore previous transformation
-  glPopMatrix();
+    // Restore previous transformation
+    glPopMatrix();
 
-  // Show bounding box
-  if (show_bboxes) {
-    GLboolean lighting = glIsEnabled(GL_LIGHTING);
-    glDisable(GL_LIGHTING);
-    node->bbox.Outline();
-    if (lighting) glEnable(GL_LIGHTING);
-  }
+    // Show bounding box
+    if (show_bboxes) {
+        GLboolean lighting = glIsEnabled(GL_LIGHTING);
+        glDisable(GL_LIGHTING);
+        node->bbox.Outline();
+        if (lighting) glEnable(GL_LIGHTING);
+    }
 }
 
 
@@ -1219,8 +1212,8 @@ void GLUTRedraw(void)
   static double previous_time = 0;
 
   static double time_lost_taking_videos = 0; // for switching back and forth
-					     // between recording and not
-					     // recording smoothly
+                         // between recording and not
+                         // recording smoothly
 
   // program just started up?
   if (previous_time == 0) previous_time = current_time;
@@ -1368,7 +1361,7 @@ void GLUTRedraw(void)
   }
 
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind
-	#endif
+    #endif
   /* End drawing minimap */
 
   // set the camera to the player's position
@@ -1784,7 +1777,7 @@ void GLUTKeyboardUp(unsigned char key, int x, int y)
   case 'f':
       sprint = 1;
       break;
-	  
+      
 /*  
   case ' ':
       move_jump = 1;
@@ -2093,14 +2086,14 @@ main(int argc, char **argv)
   shape1->type = R3_SPHERE_SHAPE;
   shape2->type = R3_SPHERE_SHAPE;
   
-  R3Sphere sphere1 = R3Sphere(R3Point(3,3,3), 3);
-  R3Sphere sphere2 = R3Sphere(R3Point(-3,3,-3), 3);
+  R3Sphere sphere1 = R3Sphere(R3Point(3,4,3), 3);
+  R3Sphere sphere2 = R3Sphere(R3Point(-3,4,-3), 3);
   shape1->sphere = &sphere1;
   shape2->sphere = &sphere2;
   
   // initialize some prey
-  Prey prey1 = Prey(100, 20, R3Point(3,3,3), R3Vector(0,0,0), *shape1);
-  Prey prey2 = Prey(100, 15, R3Point(-3,3,-3), R3Vector(0,0,0), *shape2);
+  Prey prey1 = Prey(100, 20, R3Point(3,4,3), R3Vector(0,0,0), *shape1);
+  Prey prey2 = Prey(100, 15, R3Point(-3,4,-3), R3Vector(0,0,0), *shape2);
   prey1.bbox = sphere1.BBox();
   prey2.bbox = sphere2.BBox();
   prey_list.push_back(prey1);
@@ -2110,7 +2103,7 @@ main(int argc, char **argv)
   R3ParticleSource *hsource = new R3ParticleSource();
   R3Shape *hshape = new R3Shape();
   hshape->type = R3_SPHERE_SHAPE;
-  R3Sphere hsphere = R3Sphere(R3Point(10,3,10), 3);
+  R3Sphere hsphere = R3Sphere(R3Point(10,4,10), 3);
   hshape->sphere = &hsphere;
   
   hsource->shape = hshape;
@@ -2138,7 +2131,7 @@ main(int argc, char **argv)
   hsource->material = bullet_material;
   
   // initialize a hunter
-  Hunter hunter = Hunter(100, 5, R3Point(10, 3, 10), R3Vector(0,0,0), *hsource);
+  Hunter hunter = Hunter(100, 5, R3Point(10, 4, 10), R3Vector(0,0,0), *hsource);
   hunter.bbox = hsphere.BBox();
   hunter_list.push_back(hunter);
 
