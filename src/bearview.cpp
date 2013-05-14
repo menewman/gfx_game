@@ -226,6 +226,12 @@ void DrawTextBox()
         glVertex2f(150, YSize - 50);
         glVertex2f(7, YSize - 50);
         glEnd();
+
+        char *quitString = "Quit";
+        glRasterPos2i(10, YSize - 68);
+	for (int i = 0; i < 4; i++) {
+	  glutBitmapCharacter(GLUT_BITMAP_8_BY_13, quitString[i]);
+	}
     }
     glEnable(GL_DEPTH_TEST);
 }
@@ -1559,6 +1565,9 @@ void GLUTMouse(int button, int state, int x, int y)
             if (x <= 150 && x >= 7 && y <= 50 && y >= 7) {
                 menu = 1;
             }
+	    else if (menu && x <= 150 && x >= 7 && y >=50 && y <= 100) {
+	      quit = 1;
+	    }
             else {
                 menu = 0;
             }
