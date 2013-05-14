@@ -935,10 +935,10 @@ void DrawPrey(void)
     // Define prey material
     static R3Material prey_material;
     if (prey_material.id != 33) {
-        // green
+        // white
         prey_material.ka.Reset(0.2,0.2,0.2,1);
-        prey_material.kd.Reset(0,1,0,1);
-        prey_material.ks.Reset(0,1,0,1);
+        prey_material.kd.Reset(1,1,1,1);
+        prey_material.ks.Reset(1,1,1,1);
         prey_material.kt.Reset(0,0,0,1);
         prey_material.emission.Reset(0,0,0,1);
         prey_material.shininess = 1;
@@ -2234,8 +2234,8 @@ int main(int argc, char **argv)
     R3Mesh hmesh;
     const char* huntermeshloc = "input/orthancclaw.off";
     hmesh.Read(huntermeshloc);
-    hmesh.Translate(10,0,10);
-    hmesh.Scale(2,2,2);
+    hmesh.Translate(10,1,10);
+    hmesh.Scale(1.5,1.5,1.5);
     hshape->mesh = &hmesh;
     //hshape->type = R3_SPHERE_SHAPE;
     //R3Sphere hsphere = R3Sphere(R3Point(10,4,10), 3);
@@ -2267,8 +2267,9 @@ int main(int argc, char **argv)
 
     // initialize a hunter
     Hunter hunter = Hunter(100, 5, R3Point(10, 4, 10), R3Vector(0,0,0), *hsource);
+    //hunter.bbox = hsphere.BBox();
     hunter.bbox = hmesh.bbox;
-    hunter_list.push_back(hunter); // commented out for FIRE TESTING // DEBUG
+    hunter_list.push_back(hunter);
 
     /* Sounds */
 #ifndef cygwin
