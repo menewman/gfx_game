@@ -34,7 +34,7 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
     R3Vector fromPlayer = position - playerPos;
     fromPlayer.SetY(0);
     
-    if (fromPlayer.Length() > SCARE_BOUND) {
+    if ((fromPlayer.Length() > SCARE_BOUND) && (position.Y() <= 4.0)) {
         return;
     }
         
