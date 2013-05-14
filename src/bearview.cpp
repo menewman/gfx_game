@@ -2083,14 +2083,14 @@ main(int argc, char **argv)
   shape1->type = R3_SPHERE_SHAPE;
   shape2->type = R3_SPHERE_SHAPE;
   
-  R3Sphere sphere1 = R3Sphere(R3Point(3,4,3), 3);
-  R3Sphere sphere2 = R3Sphere(R3Point(-3,4,-3), 3);
+  R3Sphere sphere1 = R3Sphere(R3Point(7,4,7), 3);
+  R3Sphere sphere2 = R3Sphere(R3Point(-7,4,-7), 3);
   shape1->sphere = &sphere1;
   shape2->sphere = &sphere2;
   
   // initialize some prey
-  Prey prey1 = Prey(100, 20, R3Point(3,4,3), R3Vector(0,0,0), *shape1);
-  Prey prey2 = Prey(100, 15, R3Point(-3,4,-3), R3Vector(0,0,0), *shape2);
+  Prey prey1 = Prey(100, 20, R3Point(7,4,7), R3Vector(0,0,0), *shape1);
+  Prey prey2 = Prey(100, 15, R3Point(-7,4,-7), R3Vector(0,0,0), *shape2);
   prey1.bbox = sphere1.BBox();
   prey2.bbox = sphere2.BBox();
   prey_list.push_back(prey1);

@@ -7,7 +7,7 @@
 #include "Hunter.h"
 #define DETECT_BOUND 150
 #define MIN_DIST 30
-#define MIN_DIST_TOLERANCE .5
+#define MIN_DIST_TOLERANCE 0.5
 #define PI 3.14159265359
 
 Hunter::
