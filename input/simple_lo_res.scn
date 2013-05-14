@@ -10,6 +10,8 @@ material  0 0 0  0 0.2 0           0 0.2 0          0 0 0  0 0 0  10 1 0
 material  0 0 0  0 0 0       0 0 0      0 0 0  0 0 0  10 1 0
 # bright green
 material  0 0 0  0 0.8 0           0 0.8 0          0 0 0  0 0 0  10 1 0
+# red
+material 0 0 0  0.2 0 0    0.2 0 0    0 0 0    0 0 0   10 1 0
 
 # sky
 background 0.529 0.808 0.980
@@ -25,6 +27,11 @@ dir_light  0.950 0.950 0.824  -0.3 -0.7 0
   #0.1 0 0 0 5 4
   #0.5 100 0.05
   #sphere 10 3 10 2
+
+particle_source
+   0.1 0 0 0 -1 6
+   10 5 0.05
+   circle 75 0.2 75 0 1 0 4
 
 cylinder 0    0 10 0    0.5 20
 sphere   3    0 20 0    5

@@ -1,6 +1,6 @@
 // Source file for the scene file viewer
-//# define cygwin         // comment this line out to compile in cygwin without glew and openAL
-
+//# define cygwin         // comment out to compile in cygwin
+                          // without glew and openAL
 
 ////////////////////////////////////////////////////////////
 // INCLUDE FILES
@@ -818,39 +818,51 @@ void DrawParticles(R3Scene *scene, double current_time, double delta_time)
 
 void DrawParticleSources(R3Scene *scene, double delta_time)
 {
-    // Check if should draw particle sources
-    if (!show_particle_sources_and_sinks) return;
+  // Check if should draw particle sources
+  if (!show_particle_sources_and_sinks) return;
 
-    // Setup
-    GLboolean lighting = glIsEnabled(GL_LIGHTING);
-    glEnable(GL_LIGHTING);
+  // Setup
+  GLboolean lighting = glIsEnabled(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
 
-    // Define source material
-    static R3Material source_material;
-    if (source_material.id != 33) {
-        // green
-        source_material.ka.Reset(0.2,0.2,0.2,1);
-        source_material.kd.Reset(0,1,0,1);
-        source_material.ks.Reset(0,1,0,1);
-        source_material.kt.Reset(0,0,0,1);
-        source_material.emission.Reset(0,0,0,1);
-        source_material.shininess = 1;
-        source_material.indexofrefraction = 1;
-        source_material.texture = NULL;
-        source_material.texture_index = -1;
-        source_material.id = 33;
-    }
+  // Define source material
+  static R3Material source_material;
+  if (source_material.id != 33) {
+    // green
+    /*source_material.ka.Reset(0.2,0.2,0.2,1);
+    source_material.kd.Reset(0,1,0,1);
+    source_material.ks.Reset(0,1,0,1);
+    source_material.kt.Reset(0,0,0,1);
+    source_material.emission.Reset(0,0,0,1);
+    source_material.shininess = 1;
+    source_material.indexofrefraction = 1;
+    source_material.texture = NULL;
+    source_material.texture_index = -1;
+    source_material.id = 33;*/
+    
+    // red
+    source_material.ka.Reset(0.2,0.2,0.2,1);
+    source_material.kd.Reset(1,0,0,1);
+    source_material.ks.Reset(1,0,0,1);
+    source_material.kt.Reset(0,0,0,1);
+    source_material.emission.Reset(0,0,0,1);
+    source_material.shininess = 1;
+    source_material.indexofrefraction = 1;
+    source_material.texture = NULL;
+    source_material.texture_index = -1;
+    source_material.id = 33;
+  }
 
-    // Draw all particle sources
-    glEnable(GL_LIGHTING);
-    LoadMaterial(&source_material);
-    for (int i = 0; i < scene->NParticleSources(); i++) {
-        R3ParticleSource *source = scene->ParticleSource(i);
-        DrawShape(source->shape);
-    }
+  // Draw all particle sources
+  glEnable(GL_LIGHTING);
+  LoadMaterial(&source_material);
+  for (int i = 0; i < scene->NParticleSources(); i++) {
+    R3ParticleSource *source = scene->ParticleSource(i);
+    DrawShape(source->shape);
+  }
 
-    // Clean up
-    if (!lighting) glDisable(GL_LIGHTING);
+  // Clean up
+  if (!lighting) glDisable(GL_LIGHTING);
 }
 
 void DrawParticleSinks(R3Scene *scene)
