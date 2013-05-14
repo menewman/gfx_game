@@ -1,5 +1,5 @@
 # usage:
-# python gen.py numtrees numbushes
+# python gen.py numtrees numbushes > file.scn
 
 import sys, random, math
 
