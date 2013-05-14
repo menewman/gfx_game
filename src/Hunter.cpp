@@ -79,7 +79,10 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
         bbox = source.shape->cone->BBox();
     }
     else if (source.shape->type == R3_MESH_SHAPE) {
-        ; // ????? how do you move meshes anyway?
+        R3Vector toNew = position - source.shape->mesh->Center();
+        toNew.SetY(0);
+        source.shape->mesh->Translate(toNew.X(), 0, toNew.Z());
+        bbox = source.shape->mesh->bbox;
     }
     else if (source.shape->type == R3_SEGMENT_SHAPE) {
         // for segment: 'position' is arbitrarily the centroid
@@ -117,7 +120,8 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
         }
         else if (source.shape->type == R3_MESH_SHAPE) {
             R3Vector toNew = position - source.shape->mesh->Center();
-            source.shape->mesh->Translate(toNew.X(),toNew.Y(),toNew.Z());
+            toNew.SetY(0);
+            source.shape->mesh->Translate(toNew.X(), 0, toNew.Z());
             bbox = source.shape->mesh->bbox;
         }
         else if (source.shape->type == R3_SEGMENT_SHAPE) {
@@ -199,7 +203,15 @@ shoot(R3Scene *scene, double current_time, double delta_time, R3Point playerPos)
              
             N = R3Vector(A);
         }
-        else
+        else if (source.shape->type == R3_MESH_SHAPE) {
+            // shoot from the centroid
+            R3Mesh *mesh = source.shape->mesh;
+            
+            point = mesh->Center();
+            R3Vector normal = playerPos - mesh->Center();
+            normal.Normalize();
+            N = normal;
+        }
             break; // this source shape not yet implemented
             
          // select a random direction, V
@@ -231,6 +243,7 @@ shoot(R3Scene *scene, double current_time, double delta_time, R3Point playerPos)
          R3Particle *particle = new R3Particle();
          particle->position = point;
          particle->velocity = source.velocity * V;
+         //particle->velocity = source.velocity * N;
          particle->mass = source.mass;
          particle->fixed = source.fixed;
          particle->drag = source.drag;
