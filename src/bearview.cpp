@@ -54,7 +54,7 @@ static R3Camera camera;
 static Bear player;
 static vector<Prey> prey_list;
 static vector<Hunter> hunter_list;
-static vector<Bearpaw> bearpaw_list;
+//static vector<Bearpaw> bearpaw_list;
 #ifndef cygwin
 static vector<ALuint> source_list;
 #endif
