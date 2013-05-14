@@ -54,6 +54,7 @@ static R3Camera camera;
 static Bear player;
 static vector<Prey> prey_list;
 static vector<Hunter> hunter_list;
+static vector<Bearpaw> bearpaw_list;
 #ifndef cygwin
 static vector<ALuint> source_list;
 #endif
@@ -76,6 +77,7 @@ static int move_right = 0;
 static int move_jump = 0;
 static int turn_left = 0;
 static int turn_right = 0;
+static int swiped = 0;
 static double sprint = 1;
 static int menu = 0;
 
@@ -352,6 +354,28 @@ void LoadMaterial(R3Material *material)
     }
 }
 
+/*
+void swipe()  //sorry this in a random location, didn't know where to put it
+{
+    fprintf(stderr, "Swiped!\n");
+    fprintf(stderr, "camera eye at  {%f, %f, %f}\n",camera.eye.X(), camera.eye.Y(), camera.eye.Z());
+    R3Shape* hshape = new R3Shape();
+    hshape->type = R3_MESH_SHAPE;
+    R3Mesh hmesh;
+    const char* huntermeshloc = "input/orthancclaw.off";
+    hmesh.Read(huntermeshloc);
+    
+    R3Point offsetinit = R3Point(0,-1.5,5);
+    R3Point meshat = camera.eye + offsetinit;
+    R3Vector moveto = meshat - hmesh.Center();
+    hmesh.Translate(moveto.X(),moveto.Y(),moveto.Z());
+    fprintf(stderr, "paw centered at  {%f, %f, %f}\n",hmesh.Center().X(), hmesh.Center().Y(), hmesh.Center().Z());
+    //hmesh.Scale(1,1,1);
+    hshape->mesh = &hmesh;
+	Bearpaw newpaw = Bearpaw(camera.eye, offsetinit, R3null_vector, *hshape);
+    fprintf(stderr, "newpaw centered at  {%f, %f, %f}\n",newpaw.shape->Center().X(), newpaw.shape->Center().Y(), newpaw.shape->Center().Z());
+	bearpaw_list.push_back(newpaw);
+} */
 
 
 void LoadCamera(R3Camera *camera)
@@ -926,6 +950,42 @@ void DrawHunters(void)
     if (!lighting) glDisable(GL_LIGHTING);
 }
 
+void DrawBearpaws(void)
+{
+    // Setup
+    GLboolean lighting = glIsEnabled(GL_LIGHTING);
+    glEnable(GL_LIGHTING);
+
+    // Define hunter material
+    static R3Material hunter_material;
+    if (hunter_material.id != 33) {
+        // red
+        hunter_material.ka.Reset(0.2,0.2,0.2,1);
+        hunter_material.kd.Reset(0,0,1,1);
+        hunter_material.ks.Reset(0,0,1,1);
+        hunter_material.kt.Reset(0,0,1,1);
+        hunter_material.emission.Reset(0,0,0,1);
+        hunter_material.shininess = 1;
+        hunter_material.indexofrefraction = 1;
+        hunter_material.texture = NULL;
+        hunter_material.texture_index = -1;
+        hunter_material.id = 33;
+    }
+
+    // Draw all paws 
+    /*
+    glEnable(GL_LIGHTING);
+    LoadMaterial(&hunter_material);
+    for (unsigned int i = 0; i < bearpaw_list.size(); i++) {
+        //bearpaw_list[i].draw();
+        DrawShape(&bearpaw_list[i].shape);
+        //fprintf(stderr, "paw shape %f \n",bearpaw_list[i].shape.mesh->Center().X());
+    } */
+
+    // Clean up
+    if (!lighting) glDisable(GL_LIGHTING);
+}
+
 void DrawParticleSprings(R3Scene *scene)
 {
     // Check if should draw particle springs
@@ -1240,6 +1300,10 @@ void GLUTRedraw(void)
 
     // update y-position
     player.updatePosition(delta_time);
+    /*
+    for (unsigned int i = 0; i < bearpaw_list.size(); i++) {
+        bearpaw_list[i].updatePosition(delta_time, camera.eye);
+    } */
 
     if (move_forward) {
         R3Vector forward = R3Vector(camera.towards);
@@ -1290,6 +1354,10 @@ void GLUTRedraw(void)
         camera.towards.Rotate(axis, PI * turn_rate * delta_time);
         camera.right.Rotate(axis, PI * turn_rate * delta_time);
     }
+	if (swiped) {
+        //swipe();
+        swiped = 0;
+	}
 
     // make sure that player doesn't leave the map
     if (player.position.X() > BOUND)
@@ -1301,6 +1369,7 @@ void GLUTRedraw(void)
     else if (player.position.Z() < -BOUND)
         player.position.SetZ(-BOUND);
 
+    
     // update the player's bbox
     //fprintf(stderr, "player:  %f, %f, %f\n", player.position.X(), player.position.Y(), player.position.Z());
     //fprintf(stderr, "box min: %f, %f, %f\n", player.bbox.XMin(), player.bbox.YMin(), player.bbox.ZMin());
@@ -1370,6 +1439,7 @@ void GLUTRedraw(void)
     // Load scene lights
     LoadLights(scene);
 
+    //DrawBearpaws();
     // Update and draw particles
     UpdateParticles(scene, current_time, delta_time, integration_type, 1);
     DrawParticles(scene, current_time - time_lost_taking_videos, delta_time);
@@ -1394,6 +1464,8 @@ void GLUTRedraw(void)
         hunter_list[i].shoot(scene, current_time, delta_time, player.getPosition());
     }
     DrawHunters();
+    
+    
 
     // Draw scene surfaces
     if (show_faces) {
@@ -1409,7 +1481,7 @@ void GLUTRedraw(void)
         DrawScene(scene, 0);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-
+    
     glDisable(GL_LIGHTING);
 
     // Display on-screen menu
@@ -1547,6 +1619,7 @@ void GLUTMotion(int x, int y)
     GLUTmouse[0] = x;
     GLUTmouse[1] = y;
 }
+
 
 void GLUTMouse(int button, int state, int x, int y)
 {
@@ -1702,6 +1775,11 @@ void GLUTKeyboard(unsigned char key, int x, int y)
         case 'f':
             sprint = 2.5;
             break;
+			
+		case 'R':
+		case 'r':
+			swiped = 1;
+			break;
 
             /*
                case 'Q':
@@ -2076,8 +2154,9 @@ int main(int argc, char **argv)
     player.bbox = player_cyl.BBox();
 
     // initialize prey shapes
-    R3Shape *shape1 = new R3Shape();
+    /*R3Shape *shape1 = new R3Shape();
     R3Shape *shape2 = new R3Shape();
+	
 
     shape1->type = R3_SPHERE_SHAPE;
     shape2->type = R3_SPHERE_SHAPE;
@@ -2085,15 +2164,24 @@ int main(int argc, char **argv)
     R3Sphere sphere1 = R3Sphere(R3Point(7,4,7), 3);
     R3Sphere sphere2 = R3Sphere(R3Point(-7,4,-7), 3);
     shape1->sphere = &sphere1;
-    shape2->sphere = &sphere2;
-
+    shape2->sphere = &sphere2;*/
+	
+	R3Shape* preyshape = new R3Shape();
+	preyshape->type = R3_MESH_SHAPE;
+	R3Mesh pmesh;
+	const char* preymeshloc = "input/badbunny.off";
+    pmesh.Read(preymeshloc);
+    pmesh.Translate(7,4,7);
+    pmesh.Scale(1,1,1);
+	//pmesh.Rotate(PI, R3posx_vector);
+    preyshape->mesh = &pmesh;
     // initialize some prey
-    Prey prey1 = Prey(100, 20, R3Point(7,4,7), R3Vector(0,0,0), *shape1);
-    Prey prey2 = Prey(100, 15, R3Point(-7,4,-7), R3Vector(0,0,0), *shape2);
-    prey1.bbox = sphere1.BBox();
-    prey2.bbox = sphere2.BBox();
+    Prey prey1 = Prey(100, 20, R3Point(7,4,7), R3Vector(0,0,0), *preyshape);
+    //Prey prey2 = Prey(100, 15, R3Point(-7,4,-7), R3Vector(0,0,0), *shape2);
+    prey1.bbox = pmesh.bbox;
+    //prey2.bbox = sphere2.BBox();
     prey_list.push_back(prey1);
-    prey_list.push_back(prey2);
+    //prey_list.push_back(prey2);
 
     // initialize hunter particle source
     R3ParticleSource *hsource = new R3ParticleSource();
@@ -2188,8 +2276,8 @@ int main(int argc, char **argv)
        alcCloseDevice(device);
     */
 
-    delete shape1;
-    delete shape2;
+    delete preyshape;
+    //delete shape2;
     delete hshape;
     delete hsource;
     delete bullet_material;

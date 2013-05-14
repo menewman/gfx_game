@@ -6,7 +6,7 @@
 # List of source files
 #
 
-SRCS=bearview.cpp particle.cpp R3Scene.cpp Bear.cpp Prey.cpp Hunter.cpp
+SRCS=bearview.cpp particle.cpp R3Scene.cpp Bear.cpp Prey.cpp Hunter.cpp Bearpaw.cpp
 OBJS=$(SRCS:.cpp=.o)
 
 #

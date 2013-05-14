@@ -83,7 +83,9 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
         bbox = shape.cone->BBox();
     }
     else if (shape.type == R3_MESH_SHAPE) {
-        ; // ????? how do you move meshes anyway?
+        R3Vector toNew = position - shape.mesh->Center();
+		shape.mesh->Translate(toNew.X(), toNew.Y(), toNew.Z());
+		bbox = shape.mesh->bbox;
     }
     else if (shape.type == R3_SEGMENT_SHAPE) {
         // for segment: 'position' is arbitrarily the centroid

@@ -29,6 +29,7 @@ public:
     R3Shape shape;
     R3Shape icon;
     R3Box bbox;
+	R3Material preymaterial;
 };
 
 // Inline functions
