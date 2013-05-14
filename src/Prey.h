@@ -20,10 +20,12 @@ public:
     // other functions
     bool collides(R3Scene *scene, R3Node *node);
     bool collides(R3Scene *scene, vector<Prey>& prey_list, vector<Hunter>& hunter_list, R3Box bearBBox);
+    void Dies(R3Vector flyaway);
     
     // public variables
     double mass;
     double speed;
+    bool dead;
     R3Point position;
     R3Vector velocity;
     R3Shape shape;

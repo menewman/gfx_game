@@ -1,5 +1,5 @@
 // Source file for the scene file viewer
-//# define cygwin         // comment out to compile in cygwin
+# define cygwin         // comment out to compile in cygwin
                           // without glew and openAL
 
 ////////////////////////////////////////////////////////////
@@ -405,6 +405,16 @@ void swipe()  //sorry this in a random location, didn't know where to put it
     fprintf(stderr, "newpaw centered at  {%f, %f, %f}\n",newpaw.shape->Center().X(), newpaw.shape->Center().Y(), newpaw.shape->Center().Z());
 	bearpaw_list.push_back(newpaw);
 } */
+
+void swipe()
+{
+    double STRIKE_DIST = 10;
+    for (unsigned int i = 0; i < prey_list.size(); i++) {
+        if ((prey_list[i].position - camera.eye).Length() < STRIKE_DIST) {
+            prey_list[i].Dies(prey_list[i].position - camera.eye);
+        }
+    }
+}
 
 
 void LoadCamera(R3Camera *camera)
@@ -946,12 +956,33 @@ void DrawPrey(void)
         prey_material.texture_index = -1;
         prey_material.id = 33;
     }
+    
+    static R3Material dead_prey_material;
+    if (prey_material.id != 33) {
+        // green
+        dead_prey_material.ka.Reset(0.2,0.2,0.2,1);
+        dead_prey_material.kd.Reset(1,1,1,1);
+        dead_prey_material.ks.Reset(1,1,1,1);
+        dead_prey_material.kt.Reset(0,0,0,1);
+        dead_prey_material.emission.Reset(0,0,0,1);
+        dead_prey_material.shininess = 1;
+        dead_prey_material.indexofrefraction = 1;
+        dead_prey_material.texture = NULL;
+        dead_prey_material.texture_index = -1;
+        dead_prey_material.id = 34;
+    }
 
     // Draw all prey
     glEnable(GL_LIGHTING);
     LoadMaterial(&prey_material);
-    for (unsigned int i = 0; i < prey_list.size(); i++)
+    for (unsigned int i = 0; i < prey_list.size(); i++) {
+        if (prey_list[i].dead) { 
+            LoadMaterial(&dead_prey_material);
+        } else {
+            LoadMaterial(&prey_material);
+        }
         DrawShape(&prey_list[i].shape);
+    }
 
     // Clean up
     if (!lighting) glDisable(GL_LIGHTING);
@@ -1395,7 +1426,7 @@ void GLUTRedraw(void)
         camera.right.Rotate(axis, PI * turn_rate * delta_time);
     }
 	if (swiped) {
-        //swipe();
+        swipe();
         swiped = 0;
 	}
 
