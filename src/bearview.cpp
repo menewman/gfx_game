@@ -696,7 +696,6 @@ void DrawNode(R3Scene *scene, R3Node *node, int minimap)
     // Draw children nodes, but only if current node's bounding box
     // is within the viewing frustrum
     if (inside) {
-
         for (int i = 0; i < (int) node->children.size(); i++) {
             DrawNode(scene, node->children[i], minimap);
         }
