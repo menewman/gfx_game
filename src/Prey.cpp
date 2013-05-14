@@ -19,6 +19,7 @@ Prey(double mass, double speed, R3Point position, R3Vector velocity, R3Shape sha
       bbox(R3null_box)
 {
     icon.type = R3_CIRCLE_SHAPE;
+    dead = false;
     icon.circle = new R3Circle(position, 7.5, R3yaxis_vector);
 }
 
@@ -33,25 +34,40 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
 {
     R3Vector fromPlayer = position - playerPos;
     fromPlayer.SetY(0);
-    
-    if ((fromPlayer.Length() > SCARE_BOUND) && (position.Y() <= 4.0)) {
-        return;
-    }
+    if (!dead) {
         
-    fromPlayer.Normalize();
-    position += fromPlayer*delta_time*speed;
+        
+        if ((fromPlayer.Length() > SCARE_BOUND) && (position.Y() <= 4.0)) {
+            return;
+        }
+        
+        fromPlayer.Normalize();
+        position += fromPlayer*delta_time*speed;
+        
+        // update the y-position
+        R3Vector grav = R3Vector(0,-15,0);
+        R3Vector f_grav = mass * grav;
+        R3Vector accel = f_grav / mass;
+        position.Translate(delta_time * velocity);
+        velocity += delta_time * accel;
+        if (position.Y() <= 4.0) { // currently a magic number
+            position.SetY(4.0);
+            velocity += R3Vector(0,10,0);
+        }
+    } else { //is dead
+        R3Vector grav = R3Vector(0,-15,0);
+        R3Vector f_grav = mass * grav;
+        R3Vector accel = f_grav / mass;
+        position.Translate(delta_time * velocity);
+        velocity += delta_time * accel;
+        if (position.Y() <= 4.0) { // currently a magic number
+            position.SetY(4.0);
+            velocity.SetY( -.2*velocity.Y());
+        }
+        velocity -= velocity * delta_time * 1;
     
-    // update the y-position
-    R3Vector grav = R3Vector(0,-15,0);
-    R3Vector f_grav = mass * grav;
-    R3Vector accel = f_grav / mass;
-    position.Translate(delta_time * velocity);
-    velocity += delta_time * accel;
-    if (position.Y() <= 4.0) { // currently a magic number
-        position.SetY(4.0);
-        velocity += R3Vector(0,10,0);
+    
     }
-    
     // keep from leaving map
     if (position.X() > bound)
         position.SetX(bound);
@@ -145,6 +161,15 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
     
     icon.circle->Reposition(position);
 }
+
+void Prey::
+Dies(R3Vector flyaway)
+{
+    velocity = .4*velocity + 10*flyaway /flyaway.Length() + speed*flyaway;
+    dead = true;
+
+}
+
 
 // recursive method, returns true if prey collides with
 //     node or any of its children
