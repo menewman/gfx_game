@@ -1775,25 +1775,26 @@ void GLUTKeyboardUp(unsigned char key, int x, int y)
             sprint = 1;
             break;
 
-            /*
-                case ' ':
-                move_jump = 1;
-                break;
+        /*
+            case ' ':
+            move_jump = 1;
+            break;
 
-                case 'Q':
-                case 'q':
-                case 27: // ESCAPE
-                quit = 1;
-                break;
-                */
-            /*
-               case ' ': {
-               printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
-               camera.eye[0], camera.eye[1], camera.eye[2],
-               camera.towards[0], camera.towards[1], camera.towards[2],
-               camera.up[0], camera.up[1], camera.up[2],
-               camera.xfov, camera.neardist, camera.fardist);
-               break; }*/
+            case 'Q':
+            case 'q':
+            case 27: // ESCAPE
+            quit = 1;
+            break;
+        */
+        /*
+           case ' ': {
+           printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
+           camera.eye[0], camera.eye[1], camera.eye[2],
+           camera.towards[0], camera.towards[1], camera.towards[2],
+           camera.up[0], camera.up[1], camera.up[2],
+           camera.xfov, camera.neardist, camera.fardist);
+           break; }
+        */
     }
 
     // Remember mouse position
@@ -1999,8 +2000,7 @@ ReadScene(const char *filename)
 // PROGRAM ARGUMENT PARSING
 ////////////////////////////////////////////////////////////
 
-    int
-ParseArgs(int argc, char **argv)
+int ParseArgs(int argc, char **argv)
 {
     // Innocent until proven guilty
     int print_usage = 0;
@@ -2049,8 +2049,7 @@ ParseArgs(int argc, char **argv)
 // MAIN
 ////////////////////////////////////////////////////////////
 
-    int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     // Parse program arguments
     if (!ParseArgs(argc, argv)) exit(1);
@@ -2187,7 +2186,7 @@ main(int argc, char **argv)
        alDeleteBuffers(1, &buffer);
        alcDestroyContext(context);
        alcCloseDevice(device);
-       */
+    */
 
     delete shape1;
     delete shape2;
