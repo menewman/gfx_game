@@ -113,22 +113,22 @@
             <img src="output/procedural_fire.jpg"><br>
             <img src="output/procedural_map1.jpg"><br>
             <img src="output/procedural_map2.jpg"><br>
-            Description here
+            We implemented two types of procedural modeling in our game. The first is the procedural simulation of a campfire, which is simulated using particle physics. This can be seen in the top screenshot. The second is the procedural generation of new forests, which have randomly placed trees and bushes across a 500x500 field. This is done with the python script "gen.py," which takes as command-line arguments the number of trees and the number of bushes to be generated, respectively (e.g., "python gen.py gen.py 100 100 > newscenefile.scn"). The bottom two screenshots above show two such randomly generated forests.
 
             <br><br>
 
             <h3>Collision Detection</h3>
             <img src="output/collision_detection.gif"><br>
-            Description here
+            Collision detection using bounding boxes was implemented, which prevents the player/prey/hunters from walking through trees and each other. The GIF above shows the player trying (and failing) to walk through a tree.
 
             <br><br>
 
             <h3>Simulated Dynamics</h3>
             <img src="output/jump_dynamics.gif"><br>
             <img src="output/swipe.gif"><br>
-            Dynamics are used to simulate the bear's jumping and subsequent falling. When the player jumps, an upward velocity is applied; there is also a constant gravitational force downward. Position/velocity are calculated each timestep with Euler integration.
+            Dynamics are used to simulate the bear's jumping and subsequent falling. When the player jumps, an upward velocity is applied; there is also a constant gravitational force downward. Position/velocity are calculated each timestep with Euler integration. This is shown in the top image above.
             
-            When the player is close to the rabbit they can press R to swipe at the rabbit.  Swiping will kill the rabbit and send it flying in the air, and the dead rabbit then bounces around using simulated physics (again, Euler integration).
+            When the player is close to the rabbit they can press R to swipe at the rabbit. Swiping will kill the rabbit and send it flying through the air; the dead rabbit then bounces around using simulated physics (again, Euler integration). This is shown in the bottom image above.
 
             <br><br>
 
@@ -149,8 +149,7 @@
 
         Internal Sources
         <ul>
-            <li>We cannibalized portions of <b>particleview.cpp</b> from assignment 4.</li>
-            <li></li>
+            <li>We used portions of <b>particleview.cpp</b> from assignment 4 as an initial framework for our game, including the additional source code/files from that assignment.</li>
         </ul>
 
         External Sources
@@ -159,8 +158,7 @@
             <li>We used the <a href="http://connect.creativelabs.com/openal/default.aspx">OpenAL</a> library for sound. In particular, <a href="http://enigma-dev.org/forums/index.php?topic=730.0;wap2">this tutorial</a> was helpful (although we also used ALUT).</li>
             <li>The specific sounds we used were nature sounds from <a href="http://naturesoundsfor.me/">here</a>, and the beginning of Holst's <a href="http://www.youtube.com/watch?v=L0bcRCCg01I">Mars</a>.</li>
             <li> The formulae for view frustrum culling came from <a href="http://www.lighthouse3d.com/tutorials/view-frustum-culling/">here</a>.</li>
-            <li></li>
         </ul>
 
     </BODY>
-</HTML>x
+</HTML>
