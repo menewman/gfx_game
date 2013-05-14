@@ -199,16 +199,9 @@ void DrawTextBox()
     glColor3d(0, 0, 0);
     glRasterPos2i(10, YSize - 25);
 
-    // convert player health to string for display
-    std::ostringstream strs;
-    strs << player.health;
-    std::string str = strs.str();
-
-    std::string health_str = "health: ";
-    std::string display_str = health_str + str;
-
-    for(std::string::size_type i = 0; i < display_str.size(); ++i) {
-        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, display_str[i]);
+    const char *menuString = "Menu";
+    for (int i = 0; i < 4; i++) {
+      glutBitmapCharacter(GLUT_BITMAP_8_BY_13, menuString[i]);
     }
 
     if (menu == 1) {
@@ -232,6 +225,36 @@ void DrawTextBox()
 	for (int i = 0; i < 4; i++) {
 	  glutBitmapCharacter(GLUT_BITMAP_8_BY_13, quitString[i]);
 	}
+
+        glColor3d(1, 1, 1);
+        glBegin(GL_QUADS);
+        glVertex2f(150, YSize - 100);     // Bottom Right
+        glVertex2f(7, YSize - 100);       //Bottom Left
+        glVertex2f(7, YSize - 150);          //Top Left
+        glVertex2f(150, YSize - 150);       //Top Right
+        glEnd();
+
+        glLineWidth(4);
+        glColor3d(0, 0, 0);
+        glBegin(GL_LINES);
+        glVertex2f(150, YSize - 100);
+        glVertex2f(7, YSize - 100);
+        glEnd();
+
+	glRasterPos2i(10, YSize - 118);
+
+	// convert player health to string for display
+	std::ostringstream strs;
+	strs << player.health;
+	std::string str = strs.str();
+
+	std::string health_str = "health: ";
+	std::string display_str = health_str + str;
+
+	for(std::string::size_type i = 0; i < display_str.size(); ++i) {
+	  glutBitmapCharacter(GLUT_BITMAP_8_BY_13, display_str[i]);
+	}
+
     }
     glEnable(GL_DEPTH_TEST);
 }
