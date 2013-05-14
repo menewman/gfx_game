@@ -220,7 +220,7 @@ void DrawTextBox()
         glVertex2f(7, YSize - 50);
         glEnd();
 
-        char *quitString = "Quit";
+        char *quitString = (char *)"Quit";
         glRasterPos2i(10, YSize - 68);
 	for (int i = 0; i < 4; i++) {
 	  glutBitmapCharacter(GLUT_BITMAP_8_BY_13, quitString[i]);
@@ -2180,7 +2180,7 @@ int main(int argc, char **argv)
     // initialize a hunter
     Hunter hunter = Hunter(100, 5, R3Point(10, 4, 10), R3Vector(0,0,0), *hsource);
     hunter.bbox = hmesh.bbox;
-    hunter_list.push_back(hunter);
+    hunter_list.push_back(hunter); // commented out for FIRE TESTING // DEBUG
 
     /* Sounds */
 #ifndef cygwin
