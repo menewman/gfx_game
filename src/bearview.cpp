@@ -2099,9 +2099,16 @@ main(int argc, char **argv)
   // initialize hunter particle source
   R3ParticleSource *hsource = new R3ParticleSource();
   R3Shape *hshape = new R3Shape();
-  hshape->type = R3_SPHERE_SHAPE;
-  R3Sphere hsphere = R3Sphere(R3Point(10,4,10), 3);
-  hshape->sphere = &hsphere;
+  hshape->type = R3_MESH_SHAPE;
+  R3Mesh hmesh;
+  const char* huntermeshloc = "input/orthancclaw.off";
+  hmesh.Read(huntermeshloc);
+  hmesh.Translate(10,0,10);
+  hmesh.Scale(2,2,2);
+  hshape->mesh = &hmesh;
+  //hshape->type = R3_SPHERE_SHAPE;
+  //R3Sphere hsphere = R3Sphere(R3Point(10,4,10), 3);
+  //hshape->sphere = &hsphere;
   
   hsource->shape = hshape;
   hsource->rate = 0.5;
@@ -2129,7 +2136,7 @@ main(int argc, char **argv)
   
   // initialize a hunter
   Hunter hunter = Hunter(100, 5, R3Point(10, 4, 10), R3Vector(0,0,0), *hsource);
-  hunter.bbox = hsphere.BBox();
+  hunter.bbox = hmesh.bbox;
   hunter_list.push_back(hunter);
 
   /* Sounds */
