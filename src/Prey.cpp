@@ -41,6 +41,17 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
     
     position += fromPlayer*delta_time*speed;
     
+    // update the y-position
+    R3Vector grav = R3Vector(0,-15,0);
+    R3Vector f_grav = mass * grav;
+    R3Vector accel = f_grav / mass;
+    position.Translate(delta_time * velocity);
+    velocity += delta_time * accel;
+    if (position.Y() <= 4.0) { // currently a magic number
+        position.SetY(4.0);
+        velocity += R3Vector(0,10,0);
+    }
+    
     // keep from leaving map
     if (position.X() > bound)
         position.SetX(bound);

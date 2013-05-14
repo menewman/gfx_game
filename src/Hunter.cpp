@@ -7,7 +7,7 @@
 #include "Hunter.h"
 #define DETECT_BOUND 150
 #define MIN_DIST 30
-#define MIN_DIST_TOLERANCE .5
+#define MIN_DIST_TOLERANCE 0.5
 #define PI 3.14159265359
 
 Hunter::
@@ -37,14 +37,16 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
 {       
     R3Vector toPlayer = playerPos - position;
     toPlayer.SetY(0);
+    R3Point oldPosition = R3Point(position);
     
-    // not moving if within tolerance of min_dist prevents the hunter from spazzing out moving back and forth across the line each update
+    // not moving if within tolerance of min_dist prevents the hunter
+    // from spazzing out moving back and forth across the line each update
     if ((toPlayer.Length() > DETECT_BOUND) || (fabs(toPlayer.Length() - MIN_DIST) < MIN_DIST_TOLERANCE))
         return;
         
     double moveToward = (toPlayer.Length() - MIN_DIST)/fabs(toPlayer.Length() - MIN_DIST);
     toPlayer.Normalize();
-    position += toPlayer*delta_time*speed * moveToward;
+    position += toPlayer*delta_time*speed*moveToward;
         
     // keep from leaving map
     if (position.X() > bound)
@@ -92,7 +94,7 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
     }
     
     if (collides(scene, prey_list, hunter_list, bearBBox)) {
-        position -= -1.5*toPlayer*delta_time*speed;
+        position = oldPosition - toPlayer*delta_time*speed*moveToward;
         // update the relevant shape parameters
         if (source.shape->type == R3_SPHERE_SHAPE) {
             source.shape->sphere->Reposition(position);
