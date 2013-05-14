@@ -27,9 +27,9 @@ print "box    0    -500 -0.5 -500    500 0 500"
 
 # trees
 for i in range(0, int(sys.argv[1])):
-    w = random.random()/2.0 + 0.75
-    h = random.random() + 1.5
-    botw = random.random()/2.0 + 0.5
+    w = random.random()*2.0 + 1.25
+    h = random.random()*2.0 + 2.0
+    botw = random.random()/2.0
     x = (random.random()*2.0 - 1.0)*500.0
     z = (random.random()*2.0 - 1.0)*500.0
 
@@ -37,7 +37,7 @@ for i in range(0, int(sys.argv[1])):
 
     print  str(w) + " 0 0 " + str(x)
     print "0 " + str(h) + " 0 0"
-    print "0 0 1 " + str(z)
+    print "0 0 " + str(w) + " " + str(z)
     print "0 0 0 1"
 
     print "mesh 2 pinetree1top.off"
