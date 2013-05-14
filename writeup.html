@@ -64,26 +64,15 @@
         <blockquote>
 
             <h3>3D Perspective Viewing and Objects</h3>
-            <img src="img.jpg"><br>
-            In our game, the player is a bear wandering around in a 3d forest.
-
-            <br><br>
-
             <h3>Lighting and Smooth Shading</h3>
-            <img src="img.jpg"><br>
-            Our primary light source is the sun, which is modeled by a directional light.
-
-            <br><br>
-
             <h3>User Input</h3>
-            <img src="img.jpg"><br>
-            The user is able to control the bear's movement in first person.  The keys WASD move the bear forward, left, backward, and right.  Q and E turn the bear left or right respectively.  R is used to attack and kill the prey if it is close enough.
-
-            <br><br>
+            <img src="output/3dperspective_lighting_usercontrol.gif"><br>
+            In our game, the player is a bear wandering around in a 3D forest. Our primary light source is the sun, which is modeled by a directional light. The user is able to control the bear's movement in first person. The WASD keys move the bear forward, left, backward, and right. Q and E rotate the bear left or right respectively. R is used to attack and kill the prey if it is close enough. The image above demonstrateds 3D perspective, 3D objects, lighting/shading, and basic user input.
 
             <h3>Computer Control</h3>
-            <img src="img.jpg"><br>
-            There are two objects under computer control.  One is the hunter, represented by the red tower, who approaches the player but remains at a distance.  The other is the prey which hops away from the player.  Both ignore the player if the player is far enough away from them.
+            <img src="output/hunter.gif"><br>
+            <img src="output/prey.gif"><br>
+            There are two objects under computer control. One is the hunter, represented by the red tower, who generally approaches the player but remains at a safe distance. The other is the prey, which hops away from the player if the player comes too close. Both ignore the player if the player is far enough away from them.
 
         </blockquote>
 
@@ -94,19 +83,20 @@
         <blockquote>
 
             <h3>Texture Mapping</h3>
-            <img src="img.jpg"><br>
-            Description here
+            <img src="output/bark_texture.jpg"><br>
+            <img src="output/leaf_texture.jpg"><br>
+            We mapped textures to the tree bark, tree tops, and ground. These can be seen in the images above.
 
             <br><br>
 
             <h3>Multiple Views</h3>
-            <img src="img.jpg"><br>
+            <img src="output/minimap.jpg"><br>
             Our game features a minimap in the top right corner. It is a top-down orthographic view of the field, centered on the player. It displays important features such as hunters and prey as large colored icons for easy visibility. All other features of the scene are displayed normally. The minimap is implemented with the help of the <a href="http://glew.sourceforge.net/">GLEW</a> library, using framebuffers to render a view to a texture, then rendering the texture onto an on-screen panel.
 
             <br><br>
 
             <h3>On-Screen Control Panel</h3>
-            <img src="img.jpg"><br>
+            <img src="output/onscreen_control.jpg"><br>
             The on-screen control panel displays the bear's health when
             the player clicks on it, as well as an exit button, clicking upon 
             which causes the game to quit. 
@@ -117,25 +107,30 @@
             This entails finding the six planes that define the viewing 
             frustrum, then checking the bounding boxes of all the nodes to see 
             if the object falls completely outside the viewing frustrum, in
-            which case, we do not draw it.<br>
+            which case, we do not draw it. This has no image because it's impossible to see if it's working correctly, but its correctness can be verified in the code and by a slight slowdown in framerate if the player turns towards a bunch of objects that were previously just out of view.<br>
 
             <br><br>
 
             <h3>Procedural and Physically-Based Modeling</h3>
-            <img src="img.jpg"><br>
+            <img src="output/procedural_fire.jpg"><br>
+            <img src="output/procedural_map1.jpg"><br>
+            <img src="output/procedural_map2.jpg"><br>
             Description here
 
             <br><br>
 
             <h3>Collision Detection</h3>
-            <img src="img.jpg"><br>
+            <img src="output/collision_detection.gif"><br>
             Description here
 
             <br><br>
 
             <h3>Simulated Dynamics</h3>
-            <img src="img.jpg"><br>
-            When the player is close to the rabbit they can press R to swipe at the rabbit.  Swiping will kill the rabbit and send it flying in the air, and the dead rabbit then bounces around using simulated physics.
+            <img src="output/jump_dynamics.gif"><br>
+            <img src="output/swipe.gif"><br>
+            Dynamics are used to simulate the bear's jumping and subsequent falling. When the player jumps, an upward velocity is applied; there is also a constant gravitational force downward. Position/velocity are calculated each timestep with Euler integration.
+            
+            When the player is close to the rabbit they can press R to swipe at the rabbit.  Swiping will kill the rabbit and send it flying in the air, and the dead rabbit then bounces around using simulated physics (again, Euler integration).
 
             <br><br>
 
