@@ -281,6 +281,7 @@ void GenerateParticles(R3Scene *scene, double current_time, double delta_time, R
      int intpart = (int)(floor(source->todo));
      source->todo -= intpart;
      
+     int modCount = 0;
      for (int i = 0; i < intpart; i++) {
          R3Point point; // point on surface
          R3Vector N;  // surface normal
@@ -375,10 +376,17 @@ void GenerateParticles(R3Scene *scene, double current_time, double delta_time, R
          particle->fixed = source->fixed;
          particle->drag = source->drag;
          particle->elasticity = source->elasticity;
-         particle->lifetime = source->lifetime;
          particle->birthday = current_time;
          particle->material = source->material;
-         particle->bullet = false;  
+         particle->bullet = false;
+         
+         // for campfires, let's give a lifetime of either plus or minus 1
+         particle->lifetime = source->lifetime + 0.5*modCount;
+         if (particle->lifetime <= 0)
+             particle->lifetime = 0.1;
+         modCount++;
+         if (modCount >= 3)
+             modCount = -2;
 
          // Add particle to scene
          scene->particles.push_back(particle);
@@ -540,8 +548,14 @@ void UpdateParticles(R3Scene *scene, double current_time, double delta_time, int
       }
       
       // Newton's second law
-      R3Vector acceleration = gravity + drag + attractions[k] + hooke[k] + sumOfSinkForces;
-      acceleration /= p->mass;
+      //R3Vector acceleration = gravity + drag + attractions[k] + hooke[k] + sumOfSinkForces;
+      //acceleration /= p->mass;
+      
+      // gravity is zero for fire
+      //gravity = R3Vector(0,0,0);
+      
+      // for debugging purposes, let's just include gravity, drag, and attractions
+      R3Vector acceleration = (gravity + drag) / p->mass;
       
       // save old position for future intersection calculations
       R3Point oldPos = R3Point(p->position);
@@ -549,6 +563,10 @@ void UpdateParticles(R3Scene *scene, double current_time, double delta_time, int
       // find new velocity and new position; update fields
       p->position.Translate(delta_time * p->velocity);
       p->velocity = p->velocity + delta_time * acceleration;
+      
+      // DEBUG
+      //fprintf(stderr, "particle moved to (%f, %f, %f)\n",
+            //p->position.X(), p->position.Y(), p->position.Z());
       
       // save new position for intersection calculations
       R3Point newPos = R3Point(p->position);
@@ -580,8 +598,9 @@ void UpdateParticles(R3Scene *scene, double current_time, double delta_time, int
           }
       }
       
-      if (deleted)
+      if (deleted) {
           delIndices.push_back(k);
+      }
   }
   
   // delete any vectors tagged for deletion

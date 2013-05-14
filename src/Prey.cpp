@@ -34,11 +34,11 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
     R3Vector fromPlayer = position - playerPos;
     fromPlayer.SetY(0);
     
-    if (fromPlayer.Length() > SCARE_BOUND)
+    if ((fromPlayer.Length() > SCARE_BOUND) && (position.Y() <= 4.0)) {
         return;
+    }
         
     fromPlayer.Normalize();
-    
     position += fromPlayer*delta_time*speed;
     
     // update the y-position
@@ -61,6 +61,9 @@ updatePosition(double delta_time, R3Point playerPos, double bound, R3Scene *scen
         position.SetZ(bound);
     else if (position.Z() < -bound)
         position.SetZ(-bound);
+        
+    if (fromPlayer.Length() > SCARE_BOUND) {
+    }
       
     // update the relevant shape parameters
     if (shape.type == R3_SPHERE_SHAPE) {

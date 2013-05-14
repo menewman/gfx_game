@@ -1,15 +1,26 @@
 camera 0 5 67  0.0287 -0.2 -0.979  -0.004 0.979 -0.200  0.25  0.01 1000
 
+particle_gravity
+0 0 0
+
 # 3 shades of brown
 material  0 0 0  .545 .271 .075    .545 .271 .075   0 0 0  0 0 0  10 1 0
 material  0 0 0  .804 .522 .247    .804 .522 .247   0 0 0  0 0 0  10 1 0
 material  0 0 0  .722 .525 .043    .722 .525 .043   0 0 0  0 0 0  10 1 0
-# dark green
-material  0 0 0  0 0.2 0           0 0.2 0          0 0 0  0 0 0  10 1 0
-# dark gray
-material  0 0 0  0 0 0       0 0 0      0 0 0  0 0 0  10 1 0
-# bright green
-material  0 0 0  0 0.8 0           0 0.8 0          0 0 0  0 0 0  10 1 0
+# dark green (3)
+material  0 0 0  0 0.2 0  0 0.2 0  0 0 0  0 0 0  10 1 0
+# black (4)
+material  0 0 0  0 0 0  0 0 0  0 0 0  0 0 0  10 1 0
+# bright green (5)
+material  0 0 0  0 0.8 0  0 0.8 0  0 0 0  0 0 0  10 1 0
+# red (6)
+material 0 0 0  1 0 0  1 0 0  0 0 0  0 0 0  10 1 0
+# light gray (7)
+material  0 0 0  0.7 0.7 0.7  0.7 0.7 0.7  0 0 0  0 0 0  10 1 0
+# orange (mat 8)
+material 0 0 0  1 .647 0    1 .647 0    0 0 0    0 0 0   10 1 0
+# yellow (mat 9)
+material 0 0 0  1 1 0    1 1 0    0 0 0    0 0 0   10 1 0
 
 # sky
 background 0.529 0.808 0.980
@@ -25,6 +36,36 @@ dir_light  0.950 0.950 0.824  -0.3 -0.7 0
   #0.1 0 0 0 5 4
   #0.5 100 0.05
   #sphere 10 3 10 2
+
+# campfire 1 red
+particle_source
+   0.1 0 0 0 0.1 6
+   67 10 0.1
+   circle 75 0.6 75 0 1 0 2
+
+# campfire 1 orange
+particle_source
+   0.1 0 0 0 0.1 8
+   67 10 0.1
+   circle 75 0.6 75 0 1 0 2
+
+# campfire 1 yellow
+particle_source
+   0.1 0 0 0 0.1 9
+   67 10 0.1
+   circle 75 0.6 75 0 1 0 2
+
+# campfire wood
+cylinder
+   1
+   75 0.3 75
+   3 0.6
+
+# campfire smoke
+particle_source
+   0.1 0 0 0 10 7
+   2 2 0.2
+   circle 75 0.5 75 0 1 0 2
 
 cylinder 0    0 10 0    0.5 20
 sphere   3    0 20 0    5

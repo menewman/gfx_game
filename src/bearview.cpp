@@ -1,6 +1,6 @@
 // Source file for the scene file viewer
-//# define cygwin         // comment this line out to compile in cygwin without glew and openAL
-
+//# define cygwin         // comment out to compile in cygwin
+                          // without glew and openAL
 
 ////////////////////////////////////////////////////////////
 // INCLUDE FILES
@@ -201,16 +201,9 @@ void DrawTextBox()
     glColor3d(0, 0, 0);
     glRasterPos2i(10, YSize - 25);
 
-    // convert player health to string for display
-    std::ostringstream strs;
-    strs << player.health;
-    std::string str = strs.str();
-
-    std::string health_str = "health: ";
-    std::string display_str = health_str + str;
-
-    for(std::string::size_type i = 0; i < display_str.size(); ++i) {
-        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, display_str[i]);
+    const char *menuString = "Menu";
+    for (int i = 0; i < 4; i++) {
+      glutBitmapCharacter(GLUT_BITMAP_8_BY_13, menuString[i]);
     }
 
     if (menu == 1) {
@@ -228,6 +221,42 @@ void DrawTextBox()
         glVertex2f(150, YSize - 50);
         glVertex2f(7, YSize - 50);
         glEnd();
+
+        char *quitString = (char *)"Quit";
+        glRasterPos2i(10, YSize - 68);
+	for (int i = 0; i < 4; i++) {
+	  glutBitmapCharacter(GLUT_BITMAP_8_BY_13, quitString[i]);
+	}
+
+        glColor3d(1, 1, 1);
+        glBegin(GL_QUADS);
+        glVertex2f(150, YSize - 100);     // Bottom Right
+        glVertex2f(7, YSize - 100);       //Bottom Left
+        glVertex2f(7, YSize - 150);          //Top Left
+        glVertex2f(150, YSize - 150);       //Top Right
+        glEnd();
+
+        glLineWidth(4);
+        glColor3d(0, 0, 0);
+        glBegin(GL_LINES);
+        glVertex2f(150, YSize - 100);
+        glVertex2f(7, YSize - 100);
+        glEnd();
+
+	glRasterPos2i(10, YSize - 118);
+
+	// convert player health to string for display
+	std::ostringstream strs;
+	strs << player.health;
+	std::string str = strs.str();
+
+	std::string health_str = "health: ";
+	std::string display_str = health_str + str;
+
+	for(std::string::size_type i = 0; i < display_str.size(); ++i) {
+	  glutBitmapCharacter(GLUT_BITMAP_8_BY_13, display_str[i]);
+	}
+
     }
     glEnable(GL_DEPTH_TEST);
 }
@@ -813,39 +842,51 @@ void DrawParticles(R3Scene *scene, double current_time, double delta_time)
 
 void DrawParticleSources(R3Scene *scene, double delta_time)
 {
-    // Check if should draw particle sources
-    if (!show_particle_sources_and_sinks) return;
+  // Check if should draw particle sources
+  if (!show_particle_sources_and_sinks) return;
 
-    // Setup
-    GLboolean lighting = glIsEnabled(GL_LIGHTING);
-    glEnable(GL_LIGHTING);
+  // Setup
+  GLboolean lighting = glIsEnabled(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
 
-    // Define source material
-    static R3Material source_material;
-    if (source_material.id != 33) {
-        // green
-        source_material.ka.Reset(0.2,0.2,0.2,1);
-        source_material.kd.Reset(0,1,0,1);
-        source_material.ks.Reset(0,1,0,1);
-        source_material.kt.Reset(0,0,0,1);
-        source_material.emission.Reset(0,0,0,1);
-        source_material.shininess = 1;
-        source_material.indexofrefraction = 1;
-        source_material.texture = NULL;
-        source_material.texture_index = -1;
-        source_material.id = 33;
-    }
+  // Define source material
+  static R3Material source_material;
+  if (source_material.id != 33) {
+    // green
+    /*source_material.ka.Reset(0.2,0.2,0.2,1);
+    source_material.kd.Reset(0,1,0,1);
+    source_material.ks.Reset(0,1,0,1);
+    source_material.kt.Reset(0,0,0,1);
+    source_material.emission.Reset(0,0,0,1);
+    source_material.shininess = 1;
+    source_material.indexofrefraction = 1;
+    source_material.texture = NULL;
+    source_material.texture_index = -1;
+    source_material.id = 33;*/
+    
+    // red
+    source_material.ka.Reset(0.2,0.2,0.2,1);
+    source_material.kd.Reset(1,0,0,1);
+    source_material.ks.Reset(1,0,0,1);
+    source_material.kt.Reset(0,0,0,1);
+    source_material.emission.Reset(0,0,0,1);
+    source_material.shininess = 1;
+    source_material.indexofrefraction = 1;
+    source_material.texture = NULL;
+    source_material.texture_index = -1;
+    source_material.id = 33;
+  }
 
-    // Draw all particle sources
-    glEnable(GL_LIGHTING);
-    LoadMaterial(&source_material);
-    for (int i = 0; i < scene->NParticleSources(); i++) {
-        R3ParticleSource *source = scene->ParticleSource(i);
-        DrawShape(source->shape);
-    }
+  // Draw all particle sources
+  glEnable(GL_LIGHTING);
+  LoadMaterial(&source_material);
+  for (int i = 0; i < scene->NParticleSources(); i++) {
+    R3ParticleSource *source = scene->ParticleSource(i);
+    DrawShape(source->shape);
+  }
 
-    // Clean up
-    if (!lighting) glDisable(GL_LIGHTING);
+  // Clean up
+  if (!lighting) glDisable(GL_LIGHTING);
 }
 
 void DrawParticleSinks(R3Scene *scene)
@@ -1632,6 +1673,9 @@ void GLUTMouse(int button, int state, int x, int y)
             if (x <= 150 && x >= 7 && y <= 50 && y >= 7) {
                 menu = 1;
             }
+	    else if (menu && x <= 150 && x >= 7 && y >=50 && y <= 100) {
+	      quit = 1;
+	    }
             else {
                 menu = 0;
             }
@@ -2224,7 +2268,7 @@ int main(int argc, char **argv)
     // initialize a hunter
     Hunter hunter = Hunter(100, 5, R3Point(10, 4, 10), R3Vector(0,0,0), *hsource);
     hunter.bbox = hmesh.bbox;
-    hunter_list.push_back(hunter);
+    hunter_list.push_back(hunter); // commented out for FIRE TESTING // DEBUG
 
     /* Sounds */
 #ifndef cygwin
