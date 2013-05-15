@@ -1,6 +1,6 @@
 // Source file for the scene file viewer
 //#define cygwin         // comment out to compile in cygwin
-                          // without glew and openAL
+                         // without glew and openAL
 
 ////////////////////////////////////////////////////////////
 // INCLUDE FILES
@@ -78,6 +78,7 @@ static int move_jump = 0;
 static int turn_left = 0;
 static int turn_right = 0;
 static int swiped = 0;
+bool cull = 1;
 static double sprint = 1;
 static int menu = 0;
 
@@ -684,8 +685,12 @@ void DrawNode(R3Scene *scene, R3Node *node, int minimap)
     if (node->material) LoadMaterial(node->material);
     int inside;
     if (minimap) inside = 1;
-    else inside = insideViewingFrustrum(&camera, node);
-    //int inside = 1;
+    else {
+        if (cull)
+            inside = insideViewingFrustrum(&camera, node);
+        else
+            inside = 1;
+    }
 
     // Draw shape
     if (node->shape) {
@@ -2172,6 +2177,7 @@ int ParseArgs(int argc, char **argv)
             else if (!strcmp(*argv, "-output_image")) { argc--; argv++; output_image_name = *argv; }
             else if (!strcmp(*argv, "-video_prefix")) { argc--; argv++; video_prefix = *argv; }
             else if (!strcmp(*argv, "-euler")) integration_type = EULER_INTEGRATION;
+            else if (!strcmp(*argv, "-nocull")) cull = false;
             else if (!strcmp(*argv, "-midpoint")) integration_type = MIDPOINT_INTEGRATION;
             else if (!strcmp(*argv, "-rk4")) integration_type = RK4_INTEGRATION;
             else if (!strcmp(*argv, "-adaptive_step_size")) integration_type = ADAPTIVE_STEP_SIZE_INTEGRATION;
@@ -2262,6 +2268,78 @@ int main(int argc, char **argv)
     //prey2.bbox = sphere2.BBox();
     prey_list.push_back(prey1);
     //prey_list.push_back(prey2);
+    delete preyshape;
+    
+    R3Shape* preyshape2 = new R3Shape();
+	preyshape2->type = R3_MESH_SHAPE;
+	R3Mesh pmesh2;
+	const char* preymeshloc2 = "input/badbunny.off";
+    pmesh2.Read(preymeshloc2);
+    pmesh2.Translate(7,4,7);
+    pmesh2.Scale(1,1,1);
+	//pmesh.Rotate(PI, R3posx_vector);
+    preyshape2->mesh = &pmesh2;
+    // initialize some prey
+    Prey prey2 = Prey(100, 20, R3Point(-7,4,-7), R3Vector(0,0,0), *preyshape2);
+    //Prey prey2 = Prey(100, 15, R3Point(-7,4,-7), R3Vector(0,0,0), *shape2);
+    prey2.bbox = pmesh2.bbox;
+    //prey2.bbox = sphere2.BBox();
+    prey_list.push_back(prey2);
+    //prey_list.push_back(prey2);
+    delete preyshape2;
+    
+    R3Shape* preyshape3 = new R3Shape();
+	preyshape3->type = R3_MESH_SHAPE;
+	R3Mesh pmesh3;
+	const char* preymeshloc3 = "input/badbunny.off";
+    pmesh3.Read(preymeshloc3);
+    pmesh3.Translate(7,4,7);
+    pmesh3.Scale(1,1,1);
+	//pmesh.Rotate(PI, R3posx_vector);
+    preyshape3->mesh = &pmesh3;
+    // initialize some prey
+    Prey prey3 = Prey(100, 20, R3Point(20,4,-30), R3Vector(0,0,0), *preyshape3);
+    prey3.bbox = pmesh3.bbox;
+    prey_list.push_back(prey3);
+    delete preyshape3;
+    
+    R3Shape* preyshape4 = new R3Shape();
+	preyshape4->type = R3_MESH_SHAPE;
+	R3Mesh pmesh4;
+	const char* preymeshloc4 = "input/badbunny.off";
+    pmesh4.Read(preymeshloc4);
+    pmesh4.Translate(7,4,7);
+    pmesh4.Scale(1,1,1);
+	//pmesh.Rotate(PI, R3posx_vector);
+    preyshape4->mesh = &pmesh4;
+    // initialize some prey
+    Prey prey4 = Prey(100, 20, R3Point(-30,4,40), R3Vector(0,0,0), *preyshape4);
+    //Prey prey2 = Prey(100, 15, R3Point(-7,4,-7), R3Vector(0,0,0), *shape2);
+    prey4.bbox = pmesh4.bbox;
+    //prey2.bbox = sphere2.BBox();
+    prey_list.push_back(prey4);
+    //prey_list.push_back(prey2);
+    delete preyshape4;
+    
+    R3Shape* preyshape5 = new R3Shape();
+	preyshape5->type = R3_MESH_SHAPE;
+	R3Mesh pmesh5;
+	const char* preymeshloc5 = "input/badbunny.off";
+    pmesh5.Read(preymeshloc5);
+    pmesh5.Translate(7,4,7);
+    pmesh5.Scale(1,1,1);
+	//pmesh.Rotate(PI, R3posx_vector);
+    preyshape5->mesh = &pmesh5;
+    // initialize some prey
+    Prey prey5 = Prey(100, 20, R3Point(-100,4,100), R3Vector(0,0,0), *preyshape5);
+    //Prey prey2 = Prey(100, 15, R3Point(-7,4,-7), R3Vector(0,0,0), *shape2);
+    prey5.bbox = pmesh5.bbox;
+    //prey2.bbox = sphere2.BBox();
+    prey_list.push_back(prey5);
+    //prey_list.push_back(prey2);
+    delete preyshape5;
+    
+    
 
     // initialize hunter particle source
     R3ParticleSource *hsource = new R3ParticleSource();
