@@ -1,5 +1,5 @@
 // Source file for the scene file viewer
-# define cygwin         // comment out to compile in cygwin
+//#define cygwin         // comment out to compile in cygwin
                           // without glew and openAL
 
 ////////////////////////////////////////////////////////////
@@ -1381,32 +1381,40 @@ void GLUTRedraw(void)
         forward.Normalize();
         forward.SetY(0);
         player.position += forward*delta_time*player.speed*sprint;
-        if (player.collides(scene, prey_list, hunter_list))
+        if (player.collides(scene, prey_list, hunter_list)) {
             player.position -= 2*forward*delta_time*player.speed*sprint;
+            player.health -= 2;
+        }
     }
     if (move_backward) {
         R3Vector backward = R3Vector(-camera.towards);
         backward.Normalize();
         backward.SetY(0);
         player.position += backward*delta_time*player.speed*sprint;
-        if (player.collides(scene, prey_list, hunter_list))
+        if (player.collides(scene, prey_list, hunter_list)) {
             player.position -= 2*backward*delta_time*player.speed*sprint;
+            player.health -= 2;
+        }
     }
     if (move_left) {
         R3Vector left = R3Vector(-camera.right);
         left.Normalize();
         left.SetY(0);
         player.position += left*delta_time*player.speed*sprint;
-        if (player.collides(scene, prey_list, hunter_list))
+        if (player.collides(scene, prey_list, hunter_list)) {
             player.position -= 2*left*delta_time*player.speed*sprint;
+            player.health -= 2;
+        }
     }
     if (move_right) {
         R3Vector right = R3Vector(camera.right);
         right.Normalize();
         right.SetY(0);
         player.position += right*delta_time*player.speed*sprint;
-        if (player.collides(scene, prey_list, hunter_list))
+        if (player.collides(scene, prey_list, hunter_list)) {
             player.position -= 2*right*delta_time*player.speed*sprint;
+            player.health -= 2;
+        }
     }
     if (move_jump) {
         if (player.position.Y() <= (player.height + TOLERANCE)) {
@@ -1440,16 +1448,15 @@ void GLUTRedraw(void)
     else if (player.position.Z() < -BOUND)
         player.position.SetZ(-BOUND);
 
-    
-    // update the player's bbox
-    //fprintf(stderr, "player:  %f, %f, %f\n", player.position.X(), player.position.Y(), player.position.Z());
-    //fprintf(stderr, "box min: %f, %f, %f\n", player.bbox.XMin(), player.bbox.YMin(), player.bbox.ZMin());
-    //fprintf(stderr, "box max: %f, %f, %f\n", player.bbox.XMax(), player.bbox.YMax(), player.bbox.ZMax());
     player.bbox.Translate(player.position - oldPosition);
 
     // check for bullet hits
     int numHits = countBulletHits(scene, player.bbox);
     player.health -= (2*numHits);
+    
+    // if player is dead, quit the game
+    if (player.health == 0)
+        quit = 1;
 
     /* Drawing minimap */
 #ifndef cygwin
@@ -1531,12 +1538,11 @@ void GLUTRedraw(void)
 
     // Update and draw hunters
     for (unsigned int i = 0; i < hunter_list.size(); i++) {
-        hunter_list[i].updatePosition(delta_time, player.getPosition(), BOUND, scene, prey_list, hunter_list, player.bbox);
+        hunter_list[i].updatePosition(delta_time, player.getPosition(),
+                                        BOUND, scene, prey_list, hunter_list, player.bbox);
         hunter_list[i].shoot(scene, current_time, delta_time, player.getPosition());
     }
     DrawHunters();
-    
-    
 
     // Draw scene surfaces
     if (show_faces) {
