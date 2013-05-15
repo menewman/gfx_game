@@ -1,5 +1,5 @@
 // Source file for the scene file viewer
-# define cygwin         // comment out to compile in cygwin
+//# define cygwin         // comment out to compile in cygwin
                           // without glew and openAL
 
 ////////////////////////////////////////////////////////////
