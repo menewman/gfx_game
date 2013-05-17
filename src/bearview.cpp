@@ -409,7 +409,7 @@ void swipe()  //sorry this in a random location, didn't know where to put it
 
 void swipe()
 {
-    double STRIKE_DIST = 10;
+    double STRIKE_DIST = 15;
     for (unsigned int i = 0; i < prey_list.size(); i++) {
         if ((prey_list[i].position - camera.eye).Length() < STRIKE_DIST) {
             prey_list[i].Dies(prey_list[i].position - camera.eye);
@@ -1861,8 +1861,8 @@ void GLUTKeyboard(unsigned char key, int x, int y)
             sprint = 2.5;
             break;
 			
-		case 'R':
-		case 'r':
+		case 'J':
+		case 'j':
 			swiped = 1;
 			break;
 
@@ -2268,14 +2268,13 @@ int main(int argc, char **argv)
     //prey2.bbox = sphere2.BBox();
     prey_list.push_back(prey1);
     //prey_list.push_back(prey2);
-    delete preyshape;
     
     R3Shape* preyshape2 = new R3Shape();
 	preyshape2->type = R3_MESH_SHAPE;
 	R3Mesh pmesh2;
 	const char* preymeshloc2 = "input/badbunny.off";
     pmesh2.Read(preymeshloc2);
-    pmesh2.Translate(7,4,7);
+    pmesh2.Translate(-7,4,-7);
     pmesh2.Scale(1,1,1);
 	//pmesh.Rotate(PI, R3posx_vector);
     preyshape2->mesh = &pmesh2;
@@ -2286,14 +2285,13 @@ int main(int argc, char **argv)
     //prey2.bbox = sphere2.BBox();
     prey_list.push_back(prey2);
     //prey_list.push_back(prey2);
-    delete preyshape2;
     
     R3Shape* preyshape3 = new R3Shape();
 	preyshape3->type = R3_MESH_SHAPE;
 	R3Mesh pmesh3;
 	const char* preymeshloc3 = "input/badbunny.off";
     pmesh3.Read(preymeshloc3);
-    pmesh3.Translate(7,4,7);
+    pmesh3.Translate(20,4,-30);
     pmesh3.Scale(1,1,1);
 	//pmesh.Rotate(PI, R3posx_vector);
     preyshape3->mesh = &pmesh3;
@@ -2301,14 +2299,13 @@ int main(int argc, char **argv)
     Prey prey3 = Prey(100, 20, R3Point(20,4,-30), R3Vector(0,0,0), *preyshape3);
     prey3.bbox = pmesh3.bbox;
     prey_list.push_back(prey3);
-    delete preyshape3;
     
     R3Shape* preyshape4 = new R3Shape();
 	preyshape4->type = R3_MESH_SHAPE;
 	R3Mesh pmesh4;
 	const char* preymeshloc4 = "input/badbunny.off";
     pmesh4.Read(preymeshloc4);
-    pmesh4.Translate(7,4,7);
+    pmesh4.Translate(-30,4,40);
     pmesh4.Scale(1,1,1);
 	//pmesh.Rotate(PI, R3posx_vector);
     preyshape4->mesh = &pmesh4;
@@ -2319,14 +2316,13 @@ int main(int argc, char **argv)
     //prey2.bbox = sphere2.BBox();
     prey_list.push_back(prey4);
     //prey_list.push_back(prey2);
-    delete preyshape4;
     
     R3Shape* preyshape5 = new R3Shape();
 	preyshape5->type = R3_MESH_SHAPE;
 	R3Mesh pmesh5;
 	const char* preymeshloc5 = "input/badbunny.off";
     pmesh5.Read(preymeshloc5);
-    pmesh5.Translate(7,4,7);
+    pmesh5.Translate(-100,4,100);
     pmesh5.Scale(1,1,1);
 	//pmesh.Rotate(PI, R3posx_vector);
     preyshape5->mesh = &pmesh5;
@@ -2337,9 +2333,6 @@ int main(int argc, char **argv)
     //prey2.bbox = sphere2.BBox();
     prey_list.push_back(prey5);
     //prey_list.push_back(prey2);
-    delete preyshape5;
-    
-    
 
     // initialize hunter particle source
     R3ParticleSource *hsource = new R3ParticleSource();
@@ -2436,6 +2429,10 @@ int main(int argc, char **argv)
     */
 
     delete preyshape;
+    delete preyshape2;
+    delete preyshape3;
+    delete preyshape4;
+    delete preyshape5;
     //delete shape2;
     delete hshape;
     delete hsource;
